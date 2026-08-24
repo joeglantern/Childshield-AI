@@ -4,6 +4,9 @@
 export const img = {
   logo: require('../assets/logo.png'),
   emptyNest: require('../assets/empty-nest.png'),
+  /// The shield cradling a child at their tablet — the platform's promise in
+  /// one picture. Used as the onboarding "you are protected" scene.
+  shieldHug: require('../assets/spot-shield-hug.png'),
 
   mascot: {
     welcome: require('../assets/mascot-welcome.png'),
@@ -11,6 +14,9 @@ export const img = {
     sad: require('../assets/mascot-sad.png'),
     celebrate: require('../assets/mascot-celebrate.png'),
     phone: require('../assets/mascot-phone.png'),
+    /// Sitting cross-legged with a phone; warmer than `phone`, for moments
+    /// about being listened to rather than about reporting.
+    phoneSit: require('../assets/mascot-phone-sit.png'),
   },
 
   category: {

@@ -23,6 +23,25 @@ export const en: Strings = {
     title: 'Welcome to ChildShield',
     subtitle: 'A safe place to say what happened to you online. No name. No judgement.',
     start: 'Start',
+    next: 'Continue',
+    scenes: [
+      {
+        title: 'Welcome to ChildShield',
+        body: 'A safe place to say what happened to you online. No name. No judgement.',
+      },
+      {
+        title: 'We never ask your name',
+        body: 'No name, no phone number, no school. You stay anonymous.',
+      },
+      {
+        title: 'Tell us what happened',
+        body: 'Just words, a few minutes. You get a private code to check on it.',
+      },
+      {
+        title: 'The help is real',
+        body: 'Real people read every report. If you need it, we connect you to Childline 116.',
+      },
+    ],
   },
   home: {
     greeting: 'Hello',

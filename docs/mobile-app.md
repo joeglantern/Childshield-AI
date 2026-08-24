@@ -6,7 +6,7 @@ Expo SDK 57 + expo-router (**NativeTabs** — true UITabBar on iOS / Material bo
 
 ```
 app/
-  index.tsx                  Onboarding (Karibu ChildShield) — once, then redirects
+  index.tsx                  Onboarding — 4 swipeable animated scenes, then redirects
   decoy.tsx                  Quick-exit decoy ("Notes") — see Safety UX
   settings.tsx               Mipangilio: theme flipper, language, notifications
   (tabs)/                    Child tabs: Nyumbani · Michezo · Hali · Msaada
@@ -61,6 +61,12 @@ Two documented exceptions to the springs-only motion rule live here: the trivia 
 - `metro.config.js` has two web-related resolver pins: `merge-options` (an async-storage web dep whose exports map breaks Metro's interop — "reading 'bind'") resolves to its CJS entry, and `canvaskit-wasm` resolves to an empty stub on non-web platforms (expo-router's require.context sweeps the `*.web.tsx` routes into native graphs, and canvaskit's entry requires `fs`).
 - `expo-local-authentication` has no web implementation; the lock gate and settings guard on `Platform.OS === 'web'`. FLAG_SECURE/screen-capture blocking does not exist on web — treat web as a dev/demo target, not a pilot channel for children, until that gap is reviewed.
 - Browsers pause `requestAnimationFrame` for hidden tabs, so the physics games freeze in background tabs and resume when visible — no time-jump, because the loop caps each step at 33 ms.
+
+## Onboarding scenes
+
+Four swipeable scenes (`app/index.tsx` + `src/components/OnboardingScenes.tsx`), each with its own artwork and its own motion so paging reads as four moments rather than one layout with the picture swapped: **welcome** (the rigged mascot waves on a breathing brush halo), **anonymity** (`spot-shield-hug` — the shield cradling a child at their tablet — with a lock settling in and the data specks drifting away), **reporting** (mascot at its phone, a paper plane climbing away and fading), and **help** (mascot sitting with its phone, ring-buoy and handset pulsing).
+
+The scroll offset is the single source of truth for the current scene: the CTA only scrolls and `page` is derived from `onScroll`. Driving both fought itself — a programmatic scroll raced the state update and landed on the wrong scene. Copy for each scene lives under `onboarding.scenes` in every locale.
 
 ## Animated mascot (Lottie)
 

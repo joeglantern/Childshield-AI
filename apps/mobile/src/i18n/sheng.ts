@@ -8,9 +8,29 @@ export const sheng: Strings = {
   ...sw,
   common: { ...sw.common, quickExit: 'Ishia haraka', retry: 'Jaribu tena' },
   onboarding: {
+    ...sw.onboarding,
     title: 'Karibu ChildShield',
     subtitle: 'Hapa ni poa kusema kilichokufika mtandaoni. Bila jina. Hakuna kukujudge.',
     start: 'Anza',
+    next: 'Songa',
+    scenes: [
+      {
+        title: 'Karibu ChildShield',
+        body: 'Hapa ni poa kusema kilichokufika mtandaoni. Bila jina. Hakuna kukujudge.',
+      },
+      {
+        title: 'Hatuulizi jina lako',
+        body: 'Hakuna jina, namba ya simu, wala school. Unabaki anonymous.',
+      },
+      {
+        title: 'Nishow kilichohappen',
+        body: 'Maneno tu, dakika chache. Utapata code ya siri ya kufuatilia.',
+      },
+      {
+        title: 'Msaada ni wa ukweli',
+        body: 'Watu halisi wanasoma kila ripoti. Ukineed, tunakuconnect na Childline 116.',
+      },
+    ],
   },
   home: {
     ...sw.home,

@@ -24,6 +24,25 @@ export const sw = {
     title: 'Karibu ChildShield',
     subtitle: 'Mahali salama pa kusema kilichokutokea mtandaoni. Bila jina. Bila hukumu.',
     start: 'Anza',
+    next: 'Endelea',
+    scenes: [
+      {
+        title: 'Karibu ChildShield',
+        body: 'Mahali salama pa kusema kilichokutokea mtandaoni. Bila jina. Bila hukumu.',
+      },
+      {
+        title: 'Hatuulizi jina lako',
+        body: 'Hatuulizi jina, namba ya simu, wala shule yako. Unabaki siri.',
+      },
+      {
+        title: 'Niambie kilichotokea',
+        body: 'Maneno tu, dakika chache. Utapata namba ya siri ya kufuatilia.',
+      },
+      {
+        title: 'Msaada ni wa kweli',
+        body: 'Watu halisi husoma kila ripoti. Ukihitaji, tunakuunganisha na Childline 116.',
+      },
+    ],
   },
   home: {
     greeting: 'Hujambo',
