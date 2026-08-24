@@ -7,6 +7,7 @@ import { QuickExitButton } from '../../src/components/QuickExitButton';
 import { PressableScale } from '../../src/components/PressableScale';
 import { CaretRightIcon } from '../../src/components/icons';
 import { useApp } from '../../src/state/AppContext';
+import { WEB_TAB_INSET } from '../../src/lib/layout';
 import { snap } from '../../src/lib/haptics';
 import { font, palette } from '../../src/theme/tokens';
 
@@ -38,7 +39,7 @@ export default function Help() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <ScrollView contentContainerStyle={{ paddingBottom: 28 }}>
-        <View style={{ paddingTop: insets.top + 8, paddingHorizontal: 20, alignItems: 'flex-end' }}>
+        <View style={{ paddingTop: insets.top + 8 + WEB_TAB_INSET, paddingHorizontal: 20, alignItems: 'flex-end' }}>
           <QuickExitButton />
         </View>
         <View style={{ paddingHorizontal: 20, paddingTop: 14 }}>

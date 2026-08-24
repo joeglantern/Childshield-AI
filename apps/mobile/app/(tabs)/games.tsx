@@ -13,6 +13,7 @@ import { Mascot } from '../../src/components/Mascot';
 import { CaretRightIcon, StarIcon, TrophyIcon } from '../../src/components/icons';
 import { SectionLabel } from '../../src/components/ui';
 import { useApp } from '../../src/state/AppContext';
+import { WEB_TAB_INSET } from '../../src/lib/layout';
 import { useGames } from '../../src/state/GamesContext';
 import { SLINGSHOT_LEVELS } from '../../src/games/slingshotLevels';
 import { font, palette, radius } from '../../src/theme/tokens';
@@ -75,7 +76,7 @@ export default function GamesHub() {
       <ScrollView contentContainerStyle={{ paddingBottom: 30 }}>
         <View
           style={{
-            paddingTop: insets.top + 8,
+            paddingTop: insets.top + 8 + WEB_TAB_INSET,
             paddingHorizontal: 16,
             flexDirection: 'row',
             justifyContent: 'space-between',

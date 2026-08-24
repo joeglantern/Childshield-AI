@@ -1,5 +1,5 @@
-﻿// SAFEGUARDING INVARIANT 5 (ANONYMITY): intake must work with zero PII and
-// the intake schema must never gain PII fields â€” required OR optional.
+// SAFEGUARDING INVARIANT 5 (ANONYMITY): intake must work with zero PII and
+// the intake schema must never gain PII fields — required OR optional.
 // Never weaken or skip this file.
 
 import { describe, expect, it } from 'vitest';

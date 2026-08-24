@@ -18,6 +18,7 @@ import { AppProvider, useApp } from '../src/state/AppContext';
 import { ReportProvider } from '../src/state/ReportContext';
 import { OfficerProvider } from '../src/state/OfficerContext';
 import { GamesProvider } from '../src/state/GamesContext';
+import { WebShell } from '../src/components/WebShell';
 import { img } from '../src/assets';
 import { font, palette } from '../src/theme/tokens';
 
@@ -127,7 +128,7 @@ function LockGate() {
 function RootStack() {
   const { isDark, colors } = useApp();
   return (
-    <>
+    <WebShell>
       <StatusBar style={isDark ? 'light' : 'dark'} />
       <Stack
         screenOptions={{
@@ -143,7 +144,7 @@ function RootStack() {
       </Stack>
       <PrivacyShield />
       <LockGate />
-    </>
+    </WebShell>
   );
 }
 

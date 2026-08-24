@@ -1,9 +1,10 @@
-﻿// Kombeo â€” drag-back slingshot with real matter-js collisions. The
+// Kombeo — drag-back slingshot with real matter-js collisions. The
 // projectile is the ChildShield logo; targets are Kenney block sprites
 // tinted to brand colors. Same JS-thread-physics / shared-value-rendering
 // architecture as tower.tsx (see the note there).
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Text, View, useWindowDimensions } from 'react-native';
+import { Text, View } from 'react-native';
+import { useStageDimensions } from '../../lib/layout';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
@@ -21,7 +22,9 @@ import {
   Group,
   Image as SkiaImage,
   Line,
+  Path,
   RoundedRect,
+  Skia,
   useImage,
   vec,
   type SkImage,
@@ -48,7 +51,7 @@ const MAX_PULL = 120;
 /// Launch velocity (matter px/step) per px of pull.
 const LAUNCH_K = 0.16;
 /// Matter's per-step gravity velocity gain at 60fps (gravity.y=1, default
-/// gravityScale 0.001, delta 16.666ms): 0.001 * 16.666Â² â‰ˆ 0.278 px/stepÂ².
+/// gravityScale 0.001, delta 16.666ms): 0.001 * 16.666² ≈ 0.278 px/step².
 const G_STEP = 0.278;
 const PROJ_R = 19;
 const DOTS = 12;
@@ -102,7 +105,7 @@ export default function SlingshotGame() {
   const { t, colors, isDark } = useApp();
   const { slingshot, recordSlingshotStars } = useGames();
   const insets = useSafeAreaInsets();
-  const { width: W, height: H } = useWindowDimensions();
+  const { width: W, height: H } = useStageDimensions();
 
   const logo = useImage(img.logo);
   const sprites = {
@@ -257,7 +260,7 @@ export default function SlingshotGame() {
       setKnocked(knockedNow);
     }
 
-    // Projectile flight â†’ rest / out of bounds ends the shot.
+    // Projectile flight → rest / out of bounds ends the shot.
     const p = projRef.current;
     if (p && phaseRef.current === 'flying') {
       proj.value = { x: p.position.x, y: p.position.y, a: p.angle };
@@ -345,7 +348,7 @@ export default function SlingshotGame() {
           }
           for (let i = 0; i < DOTS; i += 1) dots[i]!.value = { x: -20, y: -20 };
           if (len < 14) {
-            // Too small to be a real pull â€” snap back, no shot.
+            // Too small to be a real pull — snap back, no shot.
             proj.value = { x: anchor.x, y: anchor.y, a: 0 };
             return;
           }
@@ -354,9 +357,28 @@ export default function SlingshotGame() {
     [phase, anchor, proj, dots, launch, startPull],
   );
 
+  // ---- slingshot drawing (curved wooden Y-fork, drawn in code so it
+  // scales crisply and matches the brand palette in both themes) ----
+  const forkTipL = useMemo(() => vec(anchor.x - 28, anchor.y - 2), [anchor]);
+  const forkTipR = useMemo(() => vec(anchor.x + 28, anchor.y - 2), [anchor]);
+  const forkPath = useMemo(() => {
+    const p = Skia.Path.Make();
+    const baseY = groundTop + 6;
+    const splitY = anchor.y + 52;
+    // Trunk, then two branches curving out to the fork tips. The tips sit
+    // wider than the pouch so the bands and the projectile stay visible.
+    p.moveTo(anchor.x, baseY);
+    p.lineTo(anchor.x, splitY);
+    p.moveTo(anchor.x, splitY);
+    p.quadTo(anchor.x - 12, anchor.y + 24, forkTipL.x, forkTipL.y);
+    p.moveTo(anchor.x, splitY);
+    p.quadTo(anchor.x + 12, anchor.y + 24, forkTipR.x, forkTipR.y);
+    return p;
+  }, [anchor, groundTop, forkTipL, forkTipR]);
+  const woodDark = '#4A3009';
+  const woodMain = isDark ? '#9C7326' : palette.amberInk;
+
   // ---- derived values for the band + projectile ----
-  const bandLeftP1 = useMemo(() => vec(anchor.x - 14, anchor.y), [anchor]);
-  const bandRightP1 = useMemo(() => vec(anchor.x + 14, anchor.y), [anchor]);
   const bandP2 = useDerivedValue(() => vec(proj.value.x, proj.value.y));
   const projTransform = useDerivedValue(() => [
     { translateX: proj.value.x },
@@ -382,37 +404,35 @@ export default function SlingshotGame() {
               r={0}
               color={isDark ? palette.darkCardAlt : palette.track}
             />
-            {/* Slingshot post + fork */}
-            <RoundedRect
-              x={anchor.x - 5}
-              y={anchor.y + 8}
-              width={10}
-              height={groundTop - anchor.y - 8}
-              r={5}
-              color={isDark ? palette.darkFaint : palette.amberInk}
+            {/* Slingshot: outline stroke under a main stroke gives the fork
+                depth; a small amber wrap marks the grip. */}
+            <Path
+              path={forkPath}
+              style="stroke"
+              strokeWidth={12}
+              strokeCap="round"
+              strokeJoin="round"
+              color={woodDark}
+            />
+            <Path
+              path={forkPath}
+              style="stroke"
+              strokeWidth={7.5}
+              strokeCap="round"
+              strokeJoin="round"
+              color={woodMain}
             />
             <RoundedRect
-              x={anchor.x - 17}
-              y={anchor.y - 12}
-              width={7}
-              height={26}
-              r={3.5}
-              color={isDark ? palette.darkFaint : palette.amberInk}
+              x={anchor.x - 9}
+              y={groundTop - 52}
+              width={18}
+              height={22}
+              r={7}
+              color={palette.amber}
             />
-            <RoundedRect
-              x={anchor.x + 10}
-              y={anchor.y - 12}
-              width={7}
-              height={26}
-              r={3.5}
-              color={isDark ? palette.darkFaint : palette.amberInk}
-            />
-            {/* Elastic band while aiming */}
+            {/* Back band (behind the pouch) while aiming */}
             {phase === 'aiming' && (
-              <>
-                <Line p1={bandLeftP1} p2={bandP2} color={palette.amberInk} strokeWidth={3.5} />
-                <Line p1={bandRightP1} p2={bandP2} color={palette.amberInk} strokeWidth={3.5} />
-              </>
+              <Line p1={forkTipR} p2={bandP2} color={woodDark} strokeWidth={4.5} />
             )}
             {/* Trajectory preview */}
             {phase === 'aiming' && dots.map((d, i) => <TrajectoryDot key={i} sv={d} />)}
@@ -430,7 +450,7 @@ export default function SlingshotGame() {
                 )
               );
             })}
-            {/* Projectile â€” the shield logo */}
+            {/* Projectile — the shield logo */}
             {logo && (phase === 'aiming' || phase === 'flying') && (
               <Group transform={projTransform}>
                 <SkiaImage
@@ -442,6 +462,15 @@ export default function SlingshotGame() {
                   fit="contain"
                 />
               </Group>
+            )}
+            {/* Front band + pouch cradle the projectile while aiming */}
+            {phase === 'aiming' && (
+              <>
+                <Line p1={forkTipL} p2={bandP2} color={woodDark} strokeWidth={4.5} />
+                <Group transform={projTransform}>
+                  <RoundedRect x={-16} y={3} width={32} height={14} r={7} color={woodDark} />
+                </Group>
+              </>
             )}
           </Canvas>
 

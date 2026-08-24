@@ -17,6 +17,7 @@ import { PixelDots } from '../../src/components/PixelDots';
 import { ArrowRightIcon } from '../../src/components/icons';
 import { CardRow, SectionLabel } from '../../src/components/ui';
 import { useApp } from '../../src/state/AppContext';
+import { WEB_TAB_INSET } from '../../src/lib/layout';
 import { font, palette, radius } from '../../src/theme/tokens';
 
 const driftSpring = { damping: 15, stiffness: 14 };
@@ -54,7 +55,7 @@ export default function Home() {
       <ScrollView contentContainerStyle={{ paddingBottom: 26 }}>
         <View
           style={{
-            paddingTop: insets.top + 8,
+            paddingTop: insets.top + 8 + WEB_TAB_INSET,
             paddingHorizontal: 16,
             flexDirection: 'row',
             justifyContent: 'space-between',

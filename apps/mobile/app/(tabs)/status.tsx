@@ -12,6 +12,7 @@ import { PrimaryButton } from '../../src/components/ui';
 import { api, ApiError } from '../../src/lib/api';
 import { snap } from '../../src/lib/haptics';
 import { useApp } from '../../src/state/AppContext';
+import { WEB_TAB_INSET } from '../../src/lib/layout';
 import { font, palette, radius } from '../../src/theme/tokens';
 
 export const CASE_CODE_KEY = 'childshield.caseCode';
@@ -94,7 +95,7 @@ export default function Status() {
       <ScrollView contentContainerStyle={{ paddingBottom: 28 }}>
         <View
           style={{
-            paddingTop: insets.top + 8,
+            paddingTop: insets.top + 8 + WEB_TAB_INSET,
             paddingHorizontal: 20,
             alignItems: 'flex-end',
           }}

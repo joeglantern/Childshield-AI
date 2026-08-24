@@ -55,7 +55,8 @@ Two documented exceptions to the springs-only motion rule live here: the trivia 
 
 `npx expo start --web` (or press `w` in the dev server) runs the whole app in a browser — useful for quick UI iteration without a dev client. How it works:
 
-- `react-native-web` + `react-dom` are installed; NativeTabs renders its CSS web bar.
+- `react-native-web` + `react-dom` are installed. Desktop viewports render the app in a centered 720px stage on a branded backdrop (`src/components/WebShell.tsx`); screens that do absolute-position math use `useStageDimensions()` from `src/lib/layout.ts` instead of `useWindowDimensions`.
+- The child tab bar on web is a custom floating pill with the mobile icons (`app/(tabs)/_layout.web.tsx`) because NativeTabs' web renderer draws labels only; tab screens pad their tops by `WEB_TAB_INSET` to clear it.
 - The three Skia games load through `WithSkiaWeb` (`src/lib/skiaWeb.tsx`): each `app/games/*.web.tsx` route lazy-imports its screen from `src/games/screens/` only after CanvasKit (Skia's WASM build) finishes loading. The native route files re-export the same screens directly. **canvaskit.wasm is served from `public/` (same origin), never a CDN** — the games' zero-external-network rule applies on web too.
 - `metro.config.js` has two web-related resolver pins: `merge-options` (an async-storage web dep whose exports map breaks Metro's interop — "reading 'bind'") resolves to its CJS entry, and `canvaskit-wasm` resolves to an empty stub on non-web platforms (expo-router's require.context sweeps the `*.web.tsx` routes into native graphs, and canvaskit's entry requires `fs`).
 - `expo-local-authentication` has no web implementation; the lock gate and settings guard on `Platform.OS === 'web'`. FLAG_SECURE/screen-capture blocking does not exist on web — treat web as a dev/demo target, not a pilot channel for children, until that gap is reviewed.

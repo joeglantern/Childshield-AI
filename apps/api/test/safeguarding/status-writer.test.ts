@@ -1,4 +1,4 @@
-﻿// SAFEGUARDING INVARIANT 4 (STATE MACHINE): transitionCase() is the ONLY
+// SAFEGUARDING INVARIANT 4 (STATE MACHINE): transitionCase() is the ONLY
 // writer of Case.status. This architectural grep test fails if any other
 // file updates Case rows with a status field, or if anything calls
 // case.updateMany at all.
@@ -32,7 +32,7 @@ describe('transitionCase is the only status writer', () => {
         if (/\bcase\s*\.\s*update(Many)?\s*\(/.test(content)) {
           if (!file.endsWith(ALLOWED_STATUS_WRITER)) offenders.push(relative(process.cwd(), file));
         }
-        // updateMany bypasses per-row guards â€” banned everywhere.
+        // updateMany bypasses per-row guards — banned everywhere.
         expect(/\bcase\s*\.\s*updateMany\s*\(/.test(content), `${file} uses case.updateMany`).toBe(false);
       }
     }

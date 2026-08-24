@@ -1,7 +1,8 @@
 // Vipovu — tap-to-pop bubbles. Pure toy: no score, bubbles quietly grow
 // back, springPlayful pops with a light haptic each.
 import React, { useCallback, useMemo, useRef } from 'react';
-import { Pressable, Text, View, useWindowDimensions } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
+import { useStageDimensions } from '../../../src/lib/layout';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {
@@ -85,7 +86,7 @@ function Bubble({ size, color, index }: { size: number; color: string; index: nu
 export default function BubblesScreen() {
   const { t, colors, isDark } = useApp();
   const insets = useSafeAreaInsets();
-  const { width: W } = useWindowDimensions();
+  const { width: W } = useStageDimensions();
 
   const gap = 14;
   const pad = 22;

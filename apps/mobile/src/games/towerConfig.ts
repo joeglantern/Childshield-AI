@@ -15,16 +15,23 @@ export const TOWER = {
   frictionStatic: 1.1,
   density: 0.0022,
 
-  /// Decorative swing (not physics): amplitude as a fraction of screen
-  /// width, one full left-right-left cycle in swingPeriodMs.
-  swingAmplitudeRatio: 0.3,
-  swingPeriodMs: 1900,
+  /// Decorative swing (not physics). Difficulty ramps with the tower: the
+  /// first floors swing slowly over a narrow arc, then each floor shaves
+  /// the cycle time and widens the arc toward the caps below. amplitude is
+  /// a fraction of stage width; a full left-right-left cycle takes the
+  /// period. See swingParams() for the ramp.
+  swingStartPeriodMs: 3200,
+  swingMinPeriodMs: 1600,
+  swingPeriodStepMs: 110,
+  swingStartAmplitudeRatio: 0.2,
+  swingMaxAmplitudeRatio: 0.32,
+  swingAmplitudeStepRatio: 0.008,
   /// How much of the swing's instantaneous velocity carries into the drop —
   /// full carry makes late taps feel unfairly punished.
-  swingVelocityCarry: 0.55,
+  swingVelocityCarry: 0.4,
 
   /// A drop within this many px of the block below counts as "Kamili".
-  perfectTolerance: 8,
+  perfectTolerance: 9,
 
   /// Any settled block leaning past this (radians) = the tower has toppled.
   toppleAngleRad: 0.5,
@@ -44,3 +51,18 @@ export const TOWER = {
   groundWidthRatio: 0.62,
   groundH: 26,
 } as const;
+
+/// Swing speed/arc for the current floor count. Early floors are forgiving
+/// (slow, narrow); every floor tightens both until the caps.
+export function swingParams(floors: number): { periodMs: number; amplitudeRatio: number } {
+  return {
+    periodMs: Math.max(
+      TOWER.swingMinPeriodMs,
+      TOWER.swingStartPeriodMs - floors * TOWER.swingPeriodStepMs,
+    ),
+    amplitudeRatio: Math.min(
+      TOWER.swingMaxAmplitudeRatio,
+      TOWER.swingStartAmplitudeRatio + floors * TOWER.swingAmplitudeStepRatio,
+    ),
+  };
+}

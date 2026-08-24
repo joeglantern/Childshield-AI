@@ -2,7 +2,8 @@
 // streak and no failure state: miss the nest and the twig just springs
 // home. Streak lives in on-device AsyncStorage only (GamesContext).
 import React, { useCallback, useMemo, useState } from 'react';
-import { Image, Text, View, useWindowDimensions } from 'react-native';
+import { Image, Text, View } from 'react-native';
+import { useStageDimensions } from '../../../src/lib/layout';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
@@ -62,7 +63,7 @@ export default function NestScreen() {
   const { t, colors, isDark } = useApp();
   const { calm, recordNestToday } = useGames();
   const insets = useSafeAreaInsets();
-  const { width: W, height: H } = useWindowDimensions();
+  const { width: W, height: H } = useStageDimensions();
 
   const placedToday = calm.lastNestDate === todayKey();
   const [justPlaced, setJustPlaced] = useState(false);

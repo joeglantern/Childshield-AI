@@ -1,14 +1,15 @@
-﻿// Mnara â€” stack-tower with real rigid-body physics.
+// Mnara — stack-tower with real rigid-body physics.
 //
-// Architecture: matter-js steps on the JS thread (it is not worklet-safe â€”
+// Architecture: matter-js steps on the JS thread (it is not worklet-safe —
 // see src/lib/physics.ts) inside a requestAnimationFrame loop; every tick
 // writes body positions into Reanimated shared values that the Skia canvas
 // reads, so drawing never waits on React renders. React state only changes
 // on discrete events (spawn, settle, game over). The aiming swing is
-// deliberately NOT physics â€” a sine oscillation reads as fair to aim
+// deliberately NOT physics — a sine oscillation reads as fair to aim
 // against; gravity takes over the moment the block is dropped.
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Pressable, Text, View, useWindowDimensions } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
+import { useStageDimensions } from '../../lib/layout';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {
@@ -41,7 +42,7 @@ import { CloseIcon, TrophyIcon } from '../../components/icons';
 import { useApp } from '../../state/AppContext';
 import { useGames } from '../../state/GamesContext';
 import { createEngine, usePhysicsLoop } from '../../lib/physics';
-import { TOWER } from '../../games/towerConfig';
+import { TOWER, swingParams } from '../../games/towerConfig';
 import { playSfx } from '../../sounds';
 import { snap, tap, warn } from '../../lib/haptics';
 import { spring, springPlayful } from '../../theme/motion';
@@ -83,7 +84,7 @@ function BlockSprite({
   );
 }
 
-/// "Kamili xN" chip â€” pops in with overshoot on every perfect drop.
+/// "Kamili xN" chip — pops in with overshoot on every perfect drop.
 function PerfectChip({ label }: { label: string }) {
   const scale = useSharedValue(0.3);
   useEffect(() => {
@@ -113,14 +114,13 @@ export default function TowerGame() {
   const { t, colors, isDark } = useApp();
   const { tower, recordTowerScore } = useGames();
   const insets = useSafeAreaInsets();
-  const { width: W, height: H } = useWindowDimensions();
+  const { width: W, height: H } = useStageDimensions();
 
   const wood = useImage(img.game.blocks.wide);
 
   const groundTop = H - 170;
   const groundW = W * TOWER.groundWidthRatio;
   const swingY = insets.top + 132;
-  const amplitude = W * TOWER.swingAmplitudeRatio;
   const tints = useMemo(
     () =>
       isDark
@@ -134,7 +134,9 @@ export default function TowerGame() {
   const bodiesRef = useRef<Matter.Body[]>([]);
   const fallingRef = useRef<{ body: Matter.Body; stillTicks: number } | null>(null);
   const statusRef = useRef<'ready' | 'falling' | 'over'>('ready');
-  const swingTRef = useRef(0);
+  // Swing phase accumulator (radians). Advancing by delta/period each tick
+  // keeps the motion continuous when the period shortens between floors.
+  const swingPhaseRef = useRef(0);
   const prevTopXRef = useRef(W / 2);
   const floorsRef = useRef(0);
   const wobbleRef = useRef(false);
@@ -195,12 +197,11 @@ export default function TowerGame() {
 
   const onTick = useCallback(
     (delta: number) => {
-      swingTRef.current += delta;
-
-      // Decorative aiming swing (screen space).
+      // Decorative aiming swing (screen space), ramping with the floor count.
       if (statusRef.current === 'ready') {
-        const phase = (2 * Math.PI * swingTRef.current) / TOWER.swingPeriodMs;
-        swingX.value = W / 2 + amplitude * Math.sin(phase);
+        const { periodMs, amplitudeRatio } = swingParams(floorsRef.current);
+        swingPhaseRef.current += (2 * Math.PI * delta) / periodMs;
+        swingX.value = W / 2 + W * amplitudeRatio * Math.sin(swingPhaseRef.current);
       }
 
       // Mirror body poses into the canvas's shared values.
@@ -210,7 +211,7 @@ export default function TowerGame() {
         pool[i]!.value = { x: b.position.x, y: b.position.y, a: b.angle };
       }
 
-      // Settling: the falling block comes to rest â†’ it counts as a floor.
+      // Settling: the falling block comes to rest → it counts as a floor.
       const falling = fallingRef.current;
       if (falling) {
         if (falling.body.speed < TOWER.settleSpeed) {
@@ -271,7 +272,7 @@ export default function TowerGame() {
         }
       }
     },
-    [W, amplitude, groundTop, swingY, pool, swingX, cameraY, endGame],
+    [W, groundTop, swingY, pool, swingX, cameraY, endGame],
   );
 
   usePhysicsLoop(engine, onTick, true);
@@ -280,10 +281,11 @@ export default function TowerGame() {
     if (statusRef.current !== 'ready' || bodiesRef.current.length >= TOWER.maxBlocks) return;
     tap();
     const x = swingX.value;
-    const y = swingY - cameraY.value; // screen â†’ world
+    const y = swingY - cameraY.value; // screen → world
     // Carry a share of the swing's instantaneous horizontal velocity.
-    const phase = (2 * Math.PI * swingTRef.current) / TOWER.swingPeriodMs;
-    const vxPerMs = amplitude * ((2 * Math.PI) / TOWER.swingPeriodMs) * Math.cos(phase);
+    const { periodMs, amplitudeRatio } = swingParams(floorsRef.current);
+    const vxPerMs =
+      W * amplitudeRatio * ((2 * Math.PI) / periodMs) * Math.cos(swingPhaseRef.current);
     const vx = vxPerMs * 16.666 * TOWER.swingVelocityCarry;
 
     const body = Matter.Bodies.rectangle(x, y, TOWER.blockW, TOWER.blockH, {
@@ -298,7 +300,7 @@ export default function TowerGame() {
     fallingRef.current = { body, stillTicks: 0 };
     statusRef.current = 'falling';
     setBlocks((prev) => [...prev, { id: prev.length, tint: tints[prev.length % tints.length]! }]);
-  }, [engine, amplitude, swingY, swingX, cameraY, tints]);
+  }, [engine, W, swingY, swingX, cameraY, tints]);
 
   const restart = useCallback(() => {
     for (const b of bodiesRef.current) Matter.World.remove(engine.world, b);

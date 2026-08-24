@@ -1,7 +1,8 @@
 // Pumzi Tulivu — hold-to-inflate breathing. Zero-pressure: no score, no
 // timer pressure, nothing to fail. Haptic on every phase change.
 import React, { useCallback, useRef, useState } from 'react';
-import { Pressable, Text, View, useWindowDimensions } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
+import { useStageDimensions } from '../../../src/lib/layout';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {
@@ -37,7 +38,7 @@ type Phase = 'idle' | 'inhale' | 'hold' | 'exhale' | 'done';
 export default function BreathingScreen() {
   const { t, colors, isDark } = useApp();
   const insets = useSafeAreaInsets();
-  const { width: W } = useWindowDimensions();
+  const { width: W } = useStageDimensions();
 
   const [phase, setPhase] = useState<Phase>('idle');
   const [breaths, setBreaths] = useState(0);

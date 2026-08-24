@@ -1,11 +1,12 @@
-﻿// Vita vya Maswali â€” daily safety-scenario trivia.
+// Vita vya Maswali — daily safety-scenario trivia.
 //
 // The stage is intentionally dark in both themes (game-arena look from the
 // mockups). SAFEGUARDING: wrong answers get a gentle explanation and the
-// sad mascot â€” no red, no buzzer, no "WRONG" (palette.critical is
+// sad mascot — no red, no buzzer, no "WRONG" (palette.critical is
 // officer-only and never appears here). Score persists on-device only.
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ScrollView, Text, View, useWindowDimensions } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
+import { useStageDimensions } from '../../lib/layout';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {
@@ -41,7 +42,7 @@ function todayKey(): string {
 }
 
 /// EXCEPTION to the springs-only motion rule (documented): the countdown
-/// ring is a real-time clock, not UI feel â€” it must be linear and
+/// ring is a real-time clock, not UI feel — it must be linear and
 /// time-faithful, so it uses withTiming(linear).
 function CountdownRing({
   progress,
@@ -108,7 +109,7 @@ export default function TriviaGame() {
   const { t, locale } = useApp();
   const { trivia, recordTriviaRound } = useGames();
   const insets = useSafeAreaInsets();
-  const { width } = useWindowDimensions();
+  const { width } = useStageDimensions();
 
   const questions = useMemo(() => dailyQuestions(locale, todayKey()), [locale]);
   const [qIndex, setQIndex] = useState(0);
@@ -179,7 +180,7 @@ export default function TriviaGame() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, qIndex]);
 
-  // Timeout â€” counts as a gentle miss.
+  // Timeout — counts as a gentle miss.
   useEffect(() => {
     if (phase === 'answering' && secondsLeft <= 0) answer(null);
   }, [secondsLeft, phase, answer]);
@@ -216,7 +217,7 @@ export default function TriviaGame() {
 
   return (
     <View style={{ flex: 1, backgroundColor: palette.darkSurface }}>
-      {/* Top bar: close Â· progress segments Â· quick exit */}
+      {/* Top bar: close · progress segments · quick exit */}
       <View
         style={{
           paddingTop: insets.top + 8,
@@ -348,7 +349,7 @@ export default function TriviaGame() {
             contentContainerStyle={{ padding: 20, paddingBottom: insets.bottom + 24 }}
             showsVerticalScrollIndicator={false}
           >
-            {/* Score row: combo chip Â· question counter Â· ring */}
+            {/* Score row: combo chip · question counter · ring */}
             <View
               style={{
                 flexDirection: 'row',
