@@ -6,7 +6,7 @@ import * as Clipboard from 'expo-clipboard';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { img } from '../../src/assets';
-import { Mascot } from '../../src/components/Mascot';
+import { MascotLottie } from '../../src/components/MascotLottie';
 import { PressableScale } from '../../src/components/PressableScale';
 import { submitted } from '../../src/lib/haptics';
 import { useApp } from '../../src/state/AppContext';
@@ -73,12 +73,7 @@ export default function Success() {
               transform: [{ scaleX: -1 }],
             }}
           />
-          <Mascot
-            source={img.mascot.celebrate}
-            size={148}
-            variant="pop"
-            onPopLanded={submitted}
-          />
+          <MascotLottie anim="cheer" size={148} onFinish={submitted} />
         </View>
         <Text
           style={{

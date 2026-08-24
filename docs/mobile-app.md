@@ -62,6 +62,24 @@ Two documented exceptions to the springs-only motion rule live here: the trivia 
 - `expo-local-authentication` has no web implementation; the lock gate and settings guard on `Platform.OS === 'web'`. FLAG_SECURE/screen-capture blocking does not exist on web — treat web as a dev/demo target, not a pilot channel for children, until that gap is reviewed.
 - Browsers pause `requestAnimationFrame` for hidden tabs, so the physics games freeze in background tabs and resume when visible — no time-jump, because the loop caps each step at 33 ms.
 
+## Animated mascot (Lottie)
+
+`<MascotLottie anim="idle|wave|cheer" size={n} />` plays a real vector animation of the brand mascot. Three poses ship in `assets/lottie/`; each is rigged into body / arms / legs / eyes / brows layers, so limbs swing with overlap and the mascot blinks — not a whole-image bob.
+
+The files are generated locally from the brand PNGs, with no paid tooling and nothing uploaded anywhere:
+
+1. `scripts/vectorize.py` traces a flat-colour PNG into vector contours (OpenCV: smooth gradients, k-means the palette, walk each colour's outlines plus holes). The mascot art traces to ~40 shapes at 8 colours.
+2. `scripts/build_lottie.py` sorts those contours into rig parts by bounding box, gives each part a pivot at its joint, and keyframes the transforms into Lottie JSON.
+
+Regenerate with, e.g.:
+```
+python scripts/vectorize.py assets/mascot-originals/<pose>.png --colors 8 --min-area 400 --smooth 2 --json traced.json
+python scripts/build_lottie.py traced.json apps/mobile/assets/lottie/mascot-idle.json --anim idle
+```
+Rig regions and the animation presets live at the top of `build_lottie.py`. A part is matched only when its whole bbox fits the region — centre-matching swept the shield body into the face layer and the blink squashed the entire character.
+
+Players are split by platform: **native** uses Skia's built-in Lottie renderer (Skottie), which ships inside `@shopify/react-native-skia` — no extra native module. **Web** uses `lottie-web`, because Skia on web is an 8MB CanvasKit WASM download that must also finish loading before anything imports Skia; the player and animation JSON are lazy-loaded into a separate chunk, so neither reaches the main bundle. `<MascotLottie>` falls back to the static PNG `<Mascot>` under Reduce Motion or if a player fails, so no screen depends on it.
+
 ## Motion rules (no exceptions)
 
 Everything is `withSpring` — never `timing` with linear/ease curves. Defaults in `src/theme/motion.ts`:

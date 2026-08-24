@@ -13,7 +13,7 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 import { img } from '../src/assets';
-import { Mascot } from '../src/components/Mascot';
+import { MascotLottie } from '../src/components/MascotLottie';
 import { PressableScale } from '../src/components/PressableScale';
 import { ArrowRightIcon } from '../src/components/icons';
 import { useApp } from '../src/state/AppContext';
@@ -98,7 +98,7 @@ export default function Onboarding() {
             source={img.shape.brushcircle}
             style={{ position: 'absolute', width: 210, height: 210, opacity: 0.16, resizeMode: 'contain' }}
           />
-          <Mascot source={img.mascot.welcome} size={190} variant="bob" />
+          <MascotLottie anim="wave" size={190} />
         </View>
         <Text
           style={{
