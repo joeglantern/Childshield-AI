@@ -119,12 +119,10 @@ Trivia's 15-second countdown is adjustable: Mipangilio → Ufikivu → *Michezo 
 
 **Known gaps — not yet done**
 
-- No `accessibilityViewIsModal` on the biometric lock, privacy shield, or `BottomSheet`; screen-reader focus can still reach content behind them.
-- Slingshot aiming and the nest game are drag-only with no tap alternative.
-- Slingshot star ratings and the status timeline convey state through icons and opacity with no text equivalent.
-- Fixed-height containers (`height: 52` buttons, the 50px countdown ring) will clip at large Dynamic Type; `PrimaryButton` is fixed, the rest are not.
-- Officer transition/note failures signal by haptic only, with no visible or announced error.
-- No real TalkBack/VoiceOver pass has been done on a device. Automated checks catch structure, not whether the result is actually usable.
+- Slingshot aiming and the nest game are drag-only with no tap alternative (the other games are tappable).
+- Fixed-height containers (`height: 52` game buttons, the 50px countdown ring) will clip at very large Dynamic Type; `PrimaryButton` grows correctly, the rest do not.
+- The privacy shield that covers the app when backgrounded is `pointerEvents="none"`, which blocks touch but not screen-reader focus.
+- **No real TalkBack or VoiceOver pass has been done on a device.** Automated checks verify structure, not whether the result is actually usable. This is the most important outstanding item and it needs a human with a screen reader, ideally a disabled tester.
 
 ## Motion rules (no exceptions)
 

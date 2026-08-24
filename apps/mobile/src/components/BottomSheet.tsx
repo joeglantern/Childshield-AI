@@ -17,9 +17,19 @@ interface Props {
   onClose: () => void;
   children: React.ReactNode;
   background?: string;
+  /// Spoken name for the tap-outside-to-dismiss backdrop. Pan-to-dismiss is
+  /// unavailable to switch and screen-reader users, so this is their only
+  /// way out of the sheet and it must be named.
+  closeLabel?: string;
 }
 
-export function BottomSheet({ open, onClose, children, background = palette.white }: Props) {
+export function BottomSheet({
+  open,
+  onClose,
+  children,
+  background = palette.white,
+  closeLabel = 'Close',
+}: Props) {
   const { height } = useWindowDimensions();
   const ty = useSharedValue(height);
 
@@ -51,11 +61,18 @@ export function BottomSheet({ open, onClose, children, background = palette.whit
   if (!open) return null;
 
   return (
-    <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
+    // ACCESSIBILITY: without accessibilityViewIsModal a screen reader walks
+    // straight past the sheet into the screen behind it.
+    <View style={StyleSheet.absoluteFill} pointerEvents="box-none" accessibilityViewIsModal>
       <Animated.View
         style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(5,66,64,0.32)' }, dimStyle]}
       >
-        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityRole="button" />
+        <Pressable
+          style={StyleSheet.absoluteFill}
+          onPress={onClose}
+          accessibilityRole="button"
+          accessibilityLabel={closeLabel}
+        />
       </Animated.View>
       <GestureDetector gesture={pan}>
         <Animated.View

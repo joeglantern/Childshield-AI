@@ -244,8 +244,18 @@ export default function Status() {
                 : isDark
                   ? palette.darkCard
                   : palette.tealTint;
+            // ACCESSIBILITY: progress was conveyed only by tile colour and
+            // opacity, neither of which reaches the accessibility tree.
+            const stepState = done
+              ? t.status.stepDone
+              : active
+                ? t.status.stepActive
+                : t.status.stepPending;
             const tile = (
               <View
+                accessible
+                accessibilityRole="text"
+                accessibilityLabel={`${step.label}: ${stepState}`}
                 style={{
                   width: 34,
                   height: 34,

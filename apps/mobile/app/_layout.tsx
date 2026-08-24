@@ -94,7 +94,10 @@ function LockGate() {
 
   if (!locked) return null;
   return (
+    // ACCESSIBILITY: the lock covers the app, so screen-reader focus must
+    // stop here rather than wandering into the screen behind it.
     <View
+      accessibilityViewIsModal
       style={[
         StyleSheet.absoluteFill,
         {

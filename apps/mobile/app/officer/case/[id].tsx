@@ -16,6 +16,7 @@ import { PressableScale } from '../../../src/components/PressableScale';
 import { CaretLeftIcon, InfoIcon } from '../../../src/components/icons';
 import { api } from '../../../src/lib/api';
 import { snap, warn } from '../../../src/lib/haptics';
+import { announce, liveRegion } from '../../../src/lib/a11y';
 import { useApp } from '../../../src/state/AppContext';
 import { useOfficer } from '../../../src/state/OfficerContext';
 import { font, palette, severityColor } from '../../../src/theme/tokens';
@@ -43,6 +44,7 @@ export default function CaseDetail() {
   const [noteText, setNoteText] = useState('');
   const [chooseOpen, setChooseOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const refetch = useCallback(async () => {
     if (!session || !id) return;
@@ -115,12 +117,17 @@ export default function CaseDetail() {
   const doTransition = async (to: CaseStatus) => {
     if (!detail || busy) return;
     setBusy(true);
+    setActionError(null);
     snap();
     try {
       await call((token) => api.transition(token, detail.id, to));
       await refetch();
     } catch {
       warn();
+      // ACCESSIBILITY: a haptic is not feedback when the phone is on a desk,
+      // and a silent failure on a safeguarding action is a triage risk.
+      setActionError(t.officer.actionFailed);
+      announce(t.officer.actionFailed);
       await refetch(); // server state wins
     } finally {
       setBusy(false);
@@ -133,6 +140,7 @@ export default function CaseDetail() {
     if (!text || !id || busy) return;
     const tags = [t.officer.noteTagInvestigation, t.officer.noteTagContact, t.officer.noteTagOther];
     setBusy(true);
+    setActionError(null);
     snap();
     try {
       await call((token) => api.addNote(token, id, text, tags[noteTag]));
@@ -141,6 +149,8 @@ export default function CaseDetail() {
       await refetch();
     } catch {
       warn();
+      setActionError(t.officer.actionFailed);
+      announce(t.officer.actionFailed);
     } finally {
       setBusy(false);
     }
@@ -250,6 +260,22 @@ export default function CaseDetail() {
       </View>
 
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 20 }}>
+        {actionError ? (
+          <View
+            {...liveRegion(true)}
+            style={{
+              backgroundColor: palette.criticalBgSoft,
+              borderRadius: 14,
+              paddingVertical: 12,
+              paddingHorizontal: 14,
+              marginTop: 12,
+            }}
+          >
+            <Text style={{ fontFamily: font.bodySemi, fontSize: 13, color: palette.criticalInk }}>
+              {actionError}
+            </Text>
+          </View>
+        ) : null}
         {ai ? (
           <View
             style={{
@@ -392,7 +418,7 @@ export default function CaseDetail() {
       </View>
 
       {/* Transition chooser (UNDER_REVIEW -> REFERRED | CLOSED) */}
-      <BottomSheet open={chooseOpen} onClose={() => setChooseOpen(false)}>
+      <BottomSheet closeLabel={t.common.cancel} open={chooseOpen} onClose={() => setChooseOpen(false)}>
         <View style={{ gap: 8 }}>
           {nextOptions.map((to) => (
             <PressableScale
@@ -416,7 +442,7 @@ export default function CaseDetail() {
       </BottomSheet>
 
       {/* Note sheet */}
-      <BottomSheet open={noteOpen} onClose={() => setNoteOpen(false)}>
+      <BottomSheet closeLabel={t.common.cancel} open={noteOpen} onClose={() => setNoteOpen(false)}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 9 }}>
           <Image source={img.of.scroll} style={{ width: 24, height: 24, resizeMode: 'contain' }} />
           <Text style={{ fontFamily: font.heading, fontSize: 17, color: palette.ink }}>

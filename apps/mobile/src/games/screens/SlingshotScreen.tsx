@@ -565,7 +565,13 @@ export default function SlingshotGame() {
             {phase === 'cleared' ? t.games.slingshot.levelClear : t.games.slingshot.levelFailed}
           </Text>
           {phase === 'cleared' && (
-            <View style={{ flexDirection: 'row', gap: 8, marginTop: 14 }}>
+            // ACCESSIBILITY: the stars were the only carrier of the score.
+            // The row announces "2 / 3" and the individual icons are hidden.
+            <View
+              accessibilityRole="text"
+              accessibilityLabel={`${earnedStars} / 3`}
+              style={{ flexDirection: 'row', gap: 8, marginTop: 14 }}
+            >
               {([1, 2, 3] as const).map((s) =>
                 s <= earnedStars ? (
                   <StarIcon key={s} size={34} color={palette.amber} />
