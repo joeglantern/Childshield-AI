@@ -1,0 +1,29 @@
+{
+  "name": "@childshield/worker",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "node --import tsx src/index.ts",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@childshield/db": "workspace:*",
+    "@childshield/shared": "workspace:*",
+    "bullmq": "^5.41.7",
+    "ioredis": "^5.6.0",
+    "pino": "^9.6.0"
+  },
+  "devDependencies": {
+    "@childshield/config": "workspace:*",
+    "@types/node": "^22.13.10",
+    "eslint": "^9.22.0",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2",
+    "typescript-eslint": "^8.26.0",
+    "vitest": "^3.0.9"
+  }
+}

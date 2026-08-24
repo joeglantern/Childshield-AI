@@ -1,0 +1,13 @@
+{
+  "name": "@childshield/config",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Shared tsconfig and eslint bases",
+  "files": [
+    "tsconfig.base.json",
+    "eslint.base.mjs"
+  ],
+  "dependencies": {
+    "typescript-eslint": "^8.26.0"
+  }
+}

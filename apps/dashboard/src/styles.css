@@ -1,0 +1,34 @@
+@import 'tailwindcss';
+
+/* ChildShield design tokens — values match the mockups exactly. */
+@theme {
+  --color-teal: #009c9c;
+  --color-ink: #054240;
+  --color-lightteal: #3cc0c0;
+  --color-amber: #fc9c24;
+  --color-warmbg: #fbf6ee;
+  --color-officerbg: #f4f0e6;
+  --color-muted: #6b8b89;
+  --color-faint: #9aa5a0;
+  --color-inksoft: #3f6664;
+  --color-tealtint: #eaf3f2;
+  --color-ambertint: #fff6e8;
+  --color-track: #e4ded0;
+  --color-critical: #c23b3b;
+  --color-criticalbg: #ffe3e3;
+  --color-high: #d9731c;
+  --color-highbg: #fce7d3;
+  --color-medium: #a6801d;
+  --color-mediumbg: #f5ebc8;
+  --color-low: #5b8c86;
+  --color-lowbg: #deeae9;
+
+  --font-heading: 'Baloo 2', sans-serif;
+  --font-sans: 'Manrope', sans-serif;
+}
+
+body {
+  background-color: var(--color-officerbg);
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+}

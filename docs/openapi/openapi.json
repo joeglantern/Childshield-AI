@@ -1,0 +1,1319 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "ChildShield AI API",
+    "description": "Child online-protection intake and triage API (Kenya, Phase 1). Zero-content by design: no media upload endpoints exist anywhere — hashes and metadata only.",
+    "version": "0.1.0"
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {}
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Liveness probe",
+        "tags": [
+          "system"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "status"
+                  ],
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "ok"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ready": {
+      "get": {
+        "summary": "Readiness probe (checks PostgreSQL and Redis)",
+        "tags": [
+          "system"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "status"
+                  ],
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "ready"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "status",
+                    "failing"
+                  ],
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "unavailable"
+                      ]
+                    },
+                    "failing": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "summary": "Staff login (argon2 + TOTP when enrolled). Children never log in.",
+        "tags": [
+          "auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                  "email",
+                  "password"
+                ],
+                "properties": {
+                  "email": {
+                    "format": "email",
+                    "maxLength": 254,
+                    "type": "string"
+                  },
+                  "password": {
+                    "minLength": 8,
+                    "maxLength": 256,
+                    "type": "string"
+                  },
+                  "totpCode": {
+                    "minLength": 6,
+                    "maxLength": 8,
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "accessToken",
+                    "refreshToken",
+                    "role",
+                    "displayName"
+                  ],
+                  "properties": {
+                    "accessToken": {
+                      "type": "string"
+                    },
+                    "refreshToken": {
+                      "type": "string"
+                    },
+                    "role": {
+                      "type": "string",
+                      "enum": [
+                        "CHILD_REPORTER",
+                        "TRIAGE_OFFICER",
+                        "SUPERVISOR",
+                        "DCS_LIAISON",
+                        "ADMIN",
+                        "AUDITOR"
+                      ]
+                    },
+                    "displayName": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/refresh": {
+      "post": {
+        "summary": "Exchange a refresh token for a new token pair",
+        "tags": [
+          "auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                  "refreshToken"
+                ],
+                "properties": {
+                  "refreshToken": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "accessToken",
+                    "refreshToken",
+                    "role",
+                    "displayName"
+                  ],
+                  "properties": {
+                    "accessToken": {
+                      "type": "string"
+                    },
+                    "refreshToken": {
+                      "type": "string"
+                    },
+                    "role": {
+                      "type": "string",
+                      "enum": [
+                        "CHILD_REPORTER",
+                        "TRIAGE_OFFICER",
+                        "SUPERVISOR",
+                        "DCS_LIAISON",
+                        "ADMIN",
+                        "AUDITOR"
+                      ]
+                    },
+                    "displayName": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cases": {
+      "post": {
+        "summary": "Anonymous case intake (zero PII required). Returns the public case code.",
+        "tags": [
+          "cases"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "description": "Anonymous-first intake. Contains zero PII fields by design; free-text description is the only unstructured input.",
+                "type": "object",
+                "required": [
+                  "reporterType",
+                  "ageBand",
+                  "channel",
+                  "incidentType",
+                  "description",
+                  "consentVersion"
+                ],
+                "properties": {
+                  "reporterType": {
+                    "type": "string",
+                    "enum": [
+                      "CHILD_SELF",
+                      "PEER",
+                      "CAREGIVER",
+                      "PROFESSIONAL",
+                      "OTHER"
+                    ]
+                  },
+                  "ageBand": {
+                    "type": "string",
+                    "enum": [
+                      "UNDER_10",
+                      "AGE_10_12",
+                      "AGE_13_15",
+                      "AGE_16_18",
+                      "UNKNOWN"
+                    ]
+                  },
+                  "channel": {
+                    "type": "string",
+                    "enum": [
+                      "WEB",
+                      "WHATSAPP",
+                      "USSD",
+                      "SMS"
+                    ]
+                  },
+                  "incidentType": {
+                    "type": "string",
+                    "enum": [
+                      "GROOMING",
+                      "SEXTORTION",
+                      "BULLYING",
+                      "SELF_HARM",
+                      "COERCION",
+                      "HARMFUL_EXPOSURE",
+                      "OTHER"
+                    ]
+                  },
+                  "description": {
+                    "minLength": 1,
+                    "maxLength": 10000,
+                    "type": "string"
+                  },
+                  "county": {
+                    "maxLength": 100,
+                    "type": "string"
+                  },
+                  "consentVersion": {
+                    "minLength": 1,
+                    "maxLength": 50,
+                    "type": "string"
+                  },
+                  "mediaHashes": {
+                    "maxItems": 20,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "hash",
+                        "algorithm"
+                      ],
+                      "properties": {
+                        "hash": {
+                          "minLength": 8,
+                          "maxLength": 512,
+                          "type": "string"
+                        },
+                        "algorithm": {
+                          "type": "string",
+                          "enum": [
+                            "SHA256",
+                            "PDQ",
+                            "MD5_LEGACY"
+                          ]
+                        },
+                        "metadata": {
+                          "description": "Non-content metadata only (e.g. platform, approximate size). Never storage refs.",
+                          "type": "object",
+                          "additionalProperties": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "boolean"
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "description": "Anonymous-first intake. Contains zero PII fields by design; free-text description is the only unstructured input."
+        },
+        "responses": {
+          "201": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "caseCode",
+                    "status",
+                    "createdAt"
+                  ],
+                  "properties": {
+                    "caseCode": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "RECEIVED",
+                        "TRIAGED",
+                        "UNDER_REVIEW",
+                        "REFERRED",
+                        "IN_PROGRESS",
+                        "CLOSED",
+                        "REOPENED"
+                      ]
+                    },
+                    "createdAt": {
+                      "format": "date-time",
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "Triage queue listing (staff only), severity-sorted",
+        "tags": [
+          "cases"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "RECEIVED",
+                "TRIAGED",
+                "UNDER_REVIEW",
+                "REFERRED",
+                "IN_PROGRESS",
+                "CLOSED",
+                "REOPENED"
+              ]
+            },
+            "in": "query",
+            "name": "status",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "LOW",
+                "MEDIUM",
+                "HIGH",
+                "CRITICAL"
+              ]
+            },
+            "in": "query",
+            "name": "severity",
+            "required": false
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "id",
+                      "caseCode",
+                      "status",
+                      "severity",
+                      "channel",
+                      "incidentType",
+                      "county",
+                      "ageBand",
+                      "reporterType",
+                      "createdAt",
+                      "updatedAt"
+                    ],
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "caseCode": {
+                        "type": "string"
+                      },
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "RECEIVED",
+                          "TRIAGED",
+                          "UNDER_REVIEW",
+                          "REFERRED",
+                          "IN_PROGRESS",
+                          "CLOSED",
+                          "REOPENED"
+                        ]
+                      },
+                      "severity": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "enum": [
+                              "LOW",
+                              "MEDIUM",
+                              "HIGH",
+                              "CRITICAL"
+                            ]
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "channel": {
+                        "type": "string",
+                        "enum": [
+                          "WEB",
+                          "WHATSAPP",
+                          "USSD",
+                          "SMS"
+                        ]
+                      },
+                      "incidentType": {
+                        "type": "string",
+                        "enum": [
+                          "GROOMING",
+                          "SEXTORTION",
+                          "BULLYING",
+                          "SELF_HARM",
+                          "COERCION",
+                          "HARMFUL_EXPOSURE",
+                          "OTHER"
+                        ]
+                      },
+                      "county": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "ageBand": {
+                        "type": "string",
+                        "enum": [
+                          "UNDER_10",
+                          "AGE_10_12",
+                          "AGE_13_15",
+                          "AGE_16_18",
+                          "UNKNOWN"
+                        ]
+                      },
+                      "reporterType": {
+                        "type": "string",
+                        "enum": [
+                          "CHILD_SELF",
+                          "PEER",
+                          "CAREGIVER",
+                          "PROFESSIONAL",
+                          "OTHER"
+                        ]
+                      },
+                      "createdAt": {
+                        "format": "date-time",
+                        "type": "string"
+                      },
+                      "updatedAt": {
+                        "format": "date-time",
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cases/{id}": {
+      "get": {
+        "summary": "Case detail with full event timeline (staff only)",
+        "tags": [
+          "cases"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "caseCode",
+                    "status",
+                    "severity",
+                    "channel",
+                    "incidentType",
+                    "county",
+                    "ageBand",
+                    "reporterType",
+                    "createdAt",
+                    "updatedAt",
+                    "description",
+                    "consentVersion",
+                    "events"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "caseCode": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "RECEIVED",
+                        "TRIAGED",
+                        "UNDER_REVIEW",
+                        "REFERRED",
+                        "IN_PROGRESS",
+                        "CLOSED",
+                        "REOPENED"
+                      ]
+                    },
+                    "severity": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": [
+                            "LOW",
+                            "MEDIUM",
+                            "HIGH",
+                            "CRITICAL"
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "channel": {
+                      "type": "string",
+                      "enum": [
+                        "WEB",
+                        "WHATSAPP",
+                        "USSD",
+                        "SMS"
+                      ]
+                    },
+                    "incidentType": {
+                      "type": "string",
+                      "enum": [
+                        "GROOMING",
+                        "SEXTORTION",
+                        "BULLYING",
+                        "SELF_HARM",
+                        "COERCION",
+                        "HARMFUL_EXPOSURE",
+                        "OTHER"
+                      ]
+                    },
+                    "county": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "ageBand": {
+                      "type": "string",
+                      "enum": [
+                        "UNDER_10",
+                        "AGE_10_12",
+                        "AGE_13_15",
+                        "AGE_16_18",
+                        "UNKNOWN"
+                      ]
+                    },
+                    "reporterType": {
+                      "type": "string",
+                      "enum": [
+                        "CHILD_SELF",
+                        "PEER",
+                        "CAREGIVER",
+                        "PROFESSIONAL",
+                        "OTHER"
+                      ]
+                    },
+                    "createdAt": {
+                      "format": "date-time",
+                      "type": "string"
+                    },
+                    "updatedAt": {
+                      "format": "date-time",
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "consentVersion": {
+                      "type": "string"
+                    },
+                    "events": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "kind",
+                          "payload",
+                          "actorId",
+                          "createdAt"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "kind": {
+                            "type": "string"
+                          },
+                          "payload": {},
+                          "actorId": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "createdAt": {
+                            "format": "date-time",
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cases/{id}/transition": {
+      "post": {
+        "summary": "Transition a case through the guarded state machine (the only status writer)",
+        "tags": [
+          "cases"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                  "toStatus"
+                ],
+                "properties": {
+                  "toStatus": {
+                    "type": "string",
+                    "enum": [
+                      "RECEIVED",
+                      "TRIAGED",
+                      "UNDER_REVIEW",
+                      "REFERRED",
+                      "IN_PROGRESS",
+                      "CLOSED",
+                      "REOPENED"
+                    ]
+                  },
+                  "note": {
+                    "maxLength": 2000,
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "caseCode",
+                    "status",
+                    "severity",
+                    "channel",
+                    "incidentType",
+                    "county",
+                    "ageBand",
+                    "reporterType",
+                    "createdAt",
+                    "updatedAt"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "caseCode": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "RECEIVED",
+                        "TRIAGED",
+                        "UNDER_REVIEW",
+                        "REFERRED",
+                        "IN_PROGRESS",
+                        "CLOSED",
+                        "REOPENED"
+                      ]
+                    },
+                    "severity": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": [
+                            "LOW",
+                            "MEDIUM",
+                            "HIGH",
+                            "CRITICAL"
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "channel": {
+                      "type": "string",
+                      "enum": [
+                        "WEB",
+                        "WHATSAPP",
+                        "USSD",
+                        "SMS"
+                      ]
+                    },
+                    "incidentType": {
+                      "type": "string",
+                      "enum": [
+                        "GROOMING",
+                        "SEXTORTION",
+                        "BULLYING",
+                        "SELF_HARM",
+                        "COERCION",
+                        "HARMFUL_EXPOSURE",
+                        "OTHER"
+                      ]
+                    },
+                    "county": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "ageBand": {
+                      "type": "string",
+                      "enum": [
+                        "UNDER_10",
+                        "AGE_10_12",
+                        "AGE_13_15",
+                        "AGE_16_18",
+                        "UNKNOWN"
+                      ]
+                    },
+                    "reporterType": {
+                      "type": "string",
+                      "enum": [
+                        "CHILD_SELF",
+                        "PEER",
+                        "CAREGIVER",
+                        "PROFESSIONAL",
+                        "OTHER"
+                      ]
+                    },
+                    "createdAt": {
+                      "format": "date-time",
+                      "type": "string"
+                    },
+                    "updatedAt": {
+                      "format": "date-time",
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cases/{id}/notes": {
+      "post": {
+        "summary": "Add an officer note to a case (text only, audited, appears on the timeline)",
+        "tags": [
+          "cases"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                  "text"
+                ],
+                "properties": {
+                  "tag": {
+                    "maxLength": 40,
+                    "type": "string"
+                  },
+                  "text": {
+                    "minLength": 1,
+                    "maxLength": 2000,
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "kind",
+                    "payload",
+                    "actorId",
+                    "createdAt"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "kind": {
+                      "type": "string"
+                    },
+                    "payload": {},
+                    "actorId": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "createdAt": {
+                      "format": "date-time",
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/case-status/{caseCode}": {
+      "get": {
+        "summary": "Public status check by case code (child-facing). Returns status + createdAt only — no content.",
+        "tags": [
+          "cases"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "maxLength": 20,
+              "type": "string"
+            },
+            "in": "path",
+            "name": "caseCode",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "caseCode",
+                    "status",
+                    "createdAt"
+                  ],
+                  "properties": {
+                    "caseCode": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "RECEIVED",
+                        "TRIAGED",
+                        "UNDER_REVIEW",
+                        "REFERRED",
+                        "IN_PROGRESS",
+                        "CLOSED",
+                        "REOPENED"
+                      ]
+                    },
+                    "createdAt": {
+                      "format": "date-time",
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ws/ticket": {
+      "post": {
+        "summary": "Issue a short-lived single-use WebSocket ticket (staff only)",
+        "tags": [
+          "realtime"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "ticket",
+                    "expiresInSeconds"
+                  ],
+                  "properties": {
+                    "ticket": {
+                      "type": "string"
+                    },
+                    "expiresInSeconds": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000"
+    }
+  ]
+}

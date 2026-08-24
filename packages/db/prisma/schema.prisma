@@ -1,0 +1,273 @@
+// ChildShield AI — Prisma schema v1
+// Safeguarding constraints encoded here:
+//  - Case has ZERO required PII (anonymity-first).
+//  - MediaHash stores hash + algorithm + metadata ONLY — no storage refs.
+//  - AuditLog is append-only and hash-chained (prevHash + entryHash).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------- Enums ----------
+
+enum Role {
+  CHILD_REPORTER
+  TRIAGE_OFFICER
+  SUPERVISOR
+  DCS_LIAISON
+  ADMIN
+  AUDITOR
+}
+
+enum Severity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum CaseStatus {
+  RECEIVED
+  TRIAGED
+  UNDER_REVIEW
+  REFERRED
+  IN_PROGRESS
+  CLOSED
+  REOPENED
+}
+
+enum Channel {
+  WEB
+  WHATSAPP
+  USSD
+  SMS
+}
+
+enum IncidentType {
+  GROOMING
+  SEXTORTION
+  BULLYING
+  SELF_HARM
+  COERCION
+  HARMFUL_EXPOSURE
+  OTHER
+}
+
+enum ReporterType {
+  CHILD_SELF
+  PEER
+  CAREGIVER
+  PROFESSIONAL
+  OTHER
+}
+
+enum AgeBand {
+  UNDER_10
+  AGE_10_12
+  AGE_13_15
+  AGE_16_18
+  UNKNOWN
+}
+
+enum CaseEventKind {
+  CASE_CREATED
+  STATUS_CHANGED
+  AI_ASSESSMENT
+  SLA_WARNING
+  NOTE_ADDED
+  REFERRAL_CREATED
+  OVERRIDE_TRIGGERED
+}
+
+enum ReferralStatus {
+  PENDING
+  DISPATCHED
+  ACKNOWLEDGED
+  SLA_BREACHED
+  CLOSED
+}
+
+enum HashAlgorithm {
+  SHA256
+  PDQ
+  MD5_LEGACY
+}
+
+// ---------- Models ----------
+
+/// Staff accounts only. Child reporters are anonymous and never have User rows.
+model User {
+  id           String   @id @default(cuid(2))
+  email        String   @unique
+  passwordHash String
+  /// TOTP secret; when set, MFA is enforced at login for staff roles.
+  totpSecret   String?
+  role         Role
+  displayName  String
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  caseEvents     CaseEvent[]
+  overrideEvents OverrideEvent[]
+}
+
+/// Anonymous-friendly: no field on this model is PII and none beyond
+/// channel/incidentType/description/consentVersion is required.
+model Case {
+  id             String       @id @default(cuid(2))
+  /// Short human-friendly public code a child can note down to check status.
+  caseCode       String       @unique
+  status         CaseStatus   @default(RECEIVED)
+  /// Null until a human triage officer assigns it. ML never writes this.
+  severity       Severity?
+  channel        Channel
+  incidentType   IncidentType
+  description    String
+  county         String?
+  ageBand        AgeBand      @default(UNKNOWN)
+  reporterType   ReporterType @default(CHILD_SELF)
+  consentVersion String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  events         CaseEvent[]
+  mediaHashes    MediaHash[]
+  referrals      Referral[]
+  consentRecords ConsentRecord[]
+  overrideEvents OverrideEvent[]
+
+  @@index([status, severity])
+  @@index([createdAt])
+}
+
+model CaseEvent {
+  id        String        @id @default(cuid(2))
+  caseId    String
+  kind      CaseEventKind
+  /// Structured, non-PII payload. WS events mirror these rows.
+  payload   Json
+  actorId   String?
+  createdAt DateTime      @default(now())
+
+  case  Case  @relation(fields: [caseId], references: [id])
+  actor User? @relation(fields: [actorId], references: [id])
+
+  @@index([caseId, createdAt])
+}
+
+/// A published consent text version (EN/SW/Sheng), referenced by intakes.
+model ConsentVersion {
+  id        String   @id @default(cuid(2))
+  version   String   @unique
+  locale    String
+  text      String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  records ConsentRecord[]
+}
+
+/// Capture of consent given for a specific case via a specific channel.
+model ConsentRecord {
+  id        String   @id @default(cuid(2))
+  caseId    String
+  versionId String
+  channel   Channel
+  grantedAt DateTime @default(now())
+
+  case    Case           @relation(fields: [caseId], references: [id])
+  version ConsentVersion @relation(fields: [versionId], references: [id])
+
+  @@index([caseId])
+}
+
+model Referral {
+  id      String         @id @default(cuid(2))
+  caseId  String
+  partner String
+  /// Explicit allow-listed field payload — never a spread of Case.
+  payload Json
+  status  ReferralStatus @default(PENDING)
+
+  dispatchedAt   DateTime?
+  acknowledgedAt DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  case Case @relation(fields: [caseId], references: [id])
+
+  @@index([caseId])
+  @@index([status])
+}
+
+/// Append-only, hash-chained. No service exposes update/delete on this model
+/// (enforced by test/safeguarding). seq is internal ordering, never exposed.
+model AuditLog {
+  id         String   @id @default(cuid(2))
+  seq        Int      @unique @default(autoincrement())
+  actorId    String?
+  actorType  String
+  action     String
+  entityType String
+  entityId   String
+  beforeHash String?
+  afterHash  String?
+  prevHash   String
+  entryHash  String
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId])
+}
+
+/// Hash + algorithm + metadata ONLY. Deliberately NO storage refs, URLs,
+/// paths, or binary columns — the system never touches media content.
+model MediaHash {
+  id        String        @id @default(cuid(2))
+  caseId    String
+  hash      String
+  algorithm HashAlgorithm
+  metadata  Json?
+  createdAt DateTime      @default(now())
+
+  case Case @relation(fields: [caseId], references: [id])
+
+  @@index([caseId])
+  @@index([hash, algorithm])
+}
+
+/// Sanctioned de-anonymization / imminent-harm override record (§3.8).
+model OverrideEvent {
+  id               String   @id @default(cuid(2))
+  caseId           String
+  supervisorId     String
+  reason           String
+  thresholdConfig  Json?
+  childPreNotified Boolean  @default(false)
+  createdAt        DateTime @default(now())
+
+  case       Case @relation(fields: [caseId], references: [id])
+  supervisor User @relation(fields: [supervisorId], references: [id])
+
+  @@index([caseId])
+}
+
+model NotificationLog {
+  id     String  @id @default(cuid(2))
+  caseId String?
+  /// Opaque recipient reference (never a raw phone number or email).
+  recipientRef        String
+  safeContactVerified Boolean
+  channel             Channel
+  template            String
+  status              String
+  sentAt              DateTime?
+  createdAt           DateTime  @default(now())
+
+  @@index([caseId])
+}

@@ -1,0 +1,4 @@
+Block sprites: Kenney (www.kenney.nl) — Physics Assets pack (Wood elements),
+converted to grayscale here so the app can tint them to the ChildShield brand
+palette at render time. License: CC0 1.0 (public domain). No attribution
+required; credited here as a courtesy per Kenney's request.
