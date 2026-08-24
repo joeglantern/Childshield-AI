@@ -1,10 +1,15 @@
 // The Skia half of <MascotLottie>. Kept in its own module because on web
 // nothing may import Skia until CanvasKit's WASM has loaded — MascotLottie
 // therefore pulls this in lazily, the same rule the game routes follow.
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { type StyleProp, type ViewStyle } from 'react-native';
 import { Canvas, Skia, Skottie } from '@shopify/react-native-skia';
-import { useFrameCallback, useSharedValue, type SharedValue } from 'react-native-reanimated';
+import {
+  runOnJS,
+  useFrameCallback,
+  useSharedValue,
+  type SharedValue,
+} from 'react-native-reanimated';
 
 import idleJson from '../../assets/lottie/mascot-idle.json';
 import waveJson from '../../assets/lottie/mascot-wave.json';
@@ -29,6 +34,17 @@ function useLottieClock(
   onFinish?: () => void,
 ): void {
   const finished = useSharedValue(false);
+
+  // The frame callback is a worklet on the UI runtime, so it cannot call a
+  // JS callback directly — doing so throws "Tried to synchronously call a
+  // Remote Function". Hop back to the JS thread with runOnJS, through a
+  // stable wrapper so the worklet does not capture a changing identity.
+  const finishRef = useRef(onFinish);
+  finishRef.current = onFinish;
+  const notifyFinished = useCallback(() => {
+    finishRef.current?.();
+  }, []);
+
   useFrameCallback((info) => {
     'worklet';
     if (totalFrames <= 0) return;
@@ -41,7 +57,7 @@ function useLottieClock(
       frame.value = totalFrames - 1;
       if (!finished.value) {
         finished.value = true;
-        if (onFinish) onFinish();
+        runOnJS(notifyFinished)();
       }
       return;
     }
