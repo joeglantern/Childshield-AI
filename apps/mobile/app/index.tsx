@@ -187,7 +187,7 @@ export default function Onboarding() {
             style={{
               fontFamily: font.headingX,
               fontSize: 26,
-              color: palette.teal,
+              color: palette.tealText,
               textAlign: 'center',
               lineHeight: 31,
             }}

@@ -12,6 +12,7 @@ import { PrimaryButton } from '../../src/components/ui';
 import { api, ApiError } from '../../src/lib/api';
 import { snap } from '../../src/lib/haptics';
 import { useApp } from '../../src/state/AppContext';
+import { announceIfScreenReader, liveRegion } from '../../src/lib/a11y';
 import { WEB_TAB_INSET } from '../../src/lib/layout';
 import { font, palette, radius } from '../../src/theme/tokens';
 
@@ -47,6 +48,7 @@ export default function Status() {
       } catch (e) {
         setStatus(null);
         setError(e instanceof ApiError && e.status === 404 ? t.status.notFound : t.error.subtitle);
+        void announceIfScreenReader(e instanceof ApiError && e.status === 404 ? t.status.notFound : t.error.subtitle);
       }
     },
     [t],
@@ -133,6 +135,8 @@ export default function Status() {
                 {t.status.enterCodeTitle}
               </Text>
               <TextInput
+                accessibilityLabel={t.status.enterCodeTitle}
+                accessibilityHint={t.status.enterCodePlaceholder}
                 value={input}
                 onChangeText={setInput}
                 autoCapitalize="characters"
@@ -211,6 +215,9 @@ export default function Status() {
 
           {error ? (
             <Text
+              // ACCESSIBILITY: a lookup failure was previously silent for
+              // screen-reader users — the text simply appeared.
+              {...liveRegion(true)}
               style={{
                 fontFamily: font.bodySemi,
                 fontSize: 13,

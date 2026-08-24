@@ -7,7 +7,7 @@
 // and the games already load CanvasKit on demand. lottie-web is a small
 // pure-JS player, so web gets the same animation with no WASM.
 import React, { useEffect, useRef } from 'react';
-import { View, type StyleProp, type ViewStyle } from 'react-native';
+import { View } from 'react-native';
 import lottie, { type AnimationItem } from 'lottie-web';
 
 import idleJson from '../../assets/lottie/mascot-idle.json';
@@ -52,6 +52,7 @@ export default function MascotLottieCanvasWeb({
       animation.addEventListener('complete', () => finishRef.current?.());
     } catch (error) {
       if (__DEV__) {
+        // eslint-disable-next-line no-console -- dev-only diagnostic
         console.warn('[MascotLottie] lottie-web could not play the file:', error);
       }
       onUnavailable();

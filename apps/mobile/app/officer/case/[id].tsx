@@ -269,7 +269,7 @@ export default function CaseDetail() {
                   fontFamily: font.bodyExtra,
                   fontSize: 11,
                   letterSpacing: 0.4,
-                  color: palette.teal,
+                  color: palette.tealText,
                 }}
               >
                 {t.officer.aiLabel}
@@ -455,6 +455,7 @@ export default function CaseDetail() {
           )}
         </View>
         <TextInput
+          accessibilityLabel={t.officer.notePlaceholder}
           multiline
           value={noteText}
           onChangeText={setNoteText}

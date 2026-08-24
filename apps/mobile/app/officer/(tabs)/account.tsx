@@ -96,7 +96,7 @@ export default function OfficerAccount() {
                 marginTop: 5,
               }}
             >
-              <Text style={{ fontFamily: font.bodyExtra, fontSize: 10.5, letterSpacing: 0.3, color: palette.teal }}>
+              <Text style={{ fontFamily: font.bodyExtra, fontSize: 10.5, letterSpacing: 0.3, color: palette.tealText }}>
                 {session.role}
               </Text>
             </View>

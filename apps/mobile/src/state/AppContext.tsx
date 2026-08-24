@@ -21,6 +21,12 @@ interface AppState {
   setNotifsEnabled: (v: boolean) => void;
   appLockEnabled: boolean;
   setAppLockEnabled: (v: boolean) => void;
+  /// ACCESSIBILITY (WCAG 2.2.1 Timing Adjustable): when true, timed game
+  /// questions are untimed. A countdown a child cannot beat — because they
+  /// use a screen reader, a switch, or simply read slowly — turns a safety
+  /// quiz into a locked door.
+  untimedGames: boolean;
+  setUntimedGames: (v: boolean) => void;
 }
 
 const AppContext = createContext<AppState | null>(null);
@@ -32,6 +38,7 @@ interface Persisted {
   locale?: Locale;
   notifsEnabled?: boolean;
   appLockEnabled?: boolean;
+  untimedGames?: boolean;
 }
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
@@ -40,6 +47,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>('sw');
   const [notifsEnabled, setNotifsEnabledState] = useState(true);
   const [appLockEnabled, setAppLockEnabledState] = useState(false);
+  const [untimedGames, setUntimedGamesState] = useState(false);
 
   useEffect(() => {
     void AsyncStorage.getItem(STORAGE_KEY).then((raw) => {
@@ -50,6 +58,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         if (saved.locale) setLocaleState(saved.locale);
         if (typeof saved.notifsEnabled === 'boolean') setNotifsEnabledState(saved.notifsEnabled);
         if (typeof saved.appLockEnabled === 'boolean') setAppLockEnabledState(saved.appLockEnabled);
+        if (typeof saved.untimedGames === 'boolean') setUntimedGamesState(saved.untimedGames);
       } catch {
         // corrupted settings are simply reset
       }
@@ -88,8 +97,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setAppLockEnabledState(v);
         persist({ appLockEnabled: v });
       },
+      untimedGames,
+      setUntimedGames: (v) => {
+        setUntimedGamesState(v);
+        persist({ untimedGames: v });
+      },
     };
-  }, [themeMode, locale, notifsEnabled, appLockEnabled, system]);
+  }, [themeMode, locale, notifsEnabled, appLockEnabled, untimedGames, system]);
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }

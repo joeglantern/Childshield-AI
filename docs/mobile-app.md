@@ -93,6 +93,39 @@ Rig regions and the animation presets live at the top of `build_lottie.py`. A pa
 
 Players are split by platform: **native** uses Skia's built-in Lottie renderer (Skottie), which ships inside `@shopify/react-native-skia` — no extra native module. **Web** uses `lottie-web`, because Skia on web is an 8MB CanvasKit WASM download that must also finish loading before anything imports Skia; the player and animation JSON are lazy-loaded into a separate chunk, so neither reaches the main bundle. `<MascotLottie>` falls back to the static PNG `<Mascot>` under Reduce Motion or if a player fails, so no screen depends on it.
 
+## Accessibility
+
+Children with disabilities are abused at several times the rate of their peers, so a reporting app they cannot operate excludes exactly the children most likely to need it. Accessibility is treated here as a safeguarding requirement, and the parts that can be enforced by machine are.
+
+**Enforced in CI**
+
+- `pnpm --filter @childshield/mobile test` — `test/accessibility/contrast.test.ts` asserts every real colour pairing against WCAG 2.2 AA (4.5:1 normal, 3:1 for 18pt+ and for meaningful icons). It found 10 failing pairs on first run: muted body text at 3.44:1, placeholder text at 2.36:1, small brand teal at 3.13:1, and every officer severity badge. Text tokens are now the minimum hue-preserving values that clear AA. Add new pairings to that file — a token nobody asserts is a token that drifts.
+- `pnpm --filter @childshield/mobile lint` — `eslint-plugin-react-native-a11y` (MIT) fails the build on a touchable without a role or an accessible name, an invalid `accessibilityState`, or nested touchables.
+
+**Structural decisions**
+
+- `PressableScale` is the button primitive (~60 uses) and the pressable *is* the styled box, with children inside it. It previously rendered children as a sibling of an absolutely-filled `Pressable`, so the pressable had no text descendants: screen readers announced every button as unnamed and the visible label became a second focus stop. Keep children inside.
+- The same component measures itself and grows `hitSlop` when the rendered box is under 44pt, which covers the close buttons and back chevrons drawn at 34-38px by design.
+- `src/components/icons.tsx` glyphs are hidden from the accessibility tree by default (Ionicons renders a `<Text>` node, so an unhidden chevron is announced as a stray character beside the label it decorates). Pass `accessibilityLabel` when an icon is the only carrier of meaning.
+- `palette.teal` is for fills and 18pt+ headings; `palette.tealText` is the AA-safe variant for smaller text. Both read as the brand colour.
+
+**Timing (WCAG 2.2.1)**
+
+Trivia's 15-second countdown is adjustable: Mipangilio → Ufikivu → *Michezo bila saa* removes it entirely, hides the ring, and disables the timeout. Untimed players receive the mid-range speed bonus rather than none, so the setting never quietly costs points. A countdown a child cannot beat turns a safety quiz into a locked door.
+
+**Announcements**
+
+`src/lib/a11y.ts` provides `announce()` for one-off events, `announceIfScreenReader()` for messages that would duplicate a visible change, and `liveRegion()` props for text that updates in place. Both mechanisms are needed: Android reads live regions, iOS needs the explicit announce. Wired into report submission (success and failure) and case-status lookup errors.
+
+**Known gaps — not yet done**
+
+- No `accessibilityViewIsModal` on the biometric lock, privacy shield, or `BottomSheet`; screen-reader focus can still reach content behind them.
+- Slingshot aiming and the nest game are drag-only with no tap alternative.
+- Slingshot star ratings and the status timeline convey state through icons and opacity with no text equivalent.
+- Fixed-height containers (`height: 52` buttons, the 50px countdown ring) will clip at large Dynamic Type; `PrimaryButton` is fixed, the rest are not.
+- Officer transition/note failures signal by haptic only, with no visible or announced error.
+- No real TalkBack/VoiceOver pass has been done on a device. Automated checks catch structure, not whether the result is actually usable.
+
 ## Motion rules (no exceptions)
 
 Everything is `withSpring` — never `timing` with linear/ease curves. Defaults in `src/theme/motion.ts`:

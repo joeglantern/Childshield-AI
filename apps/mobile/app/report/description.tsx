@@ -42,6 +42,8 @@ export default function DescriptionStep() {
           </Text>
 
           <TextInput
+            accessibilityLabel={t.report.descriptionTitle}
+            accessibilityHint={t.report.descriptionSubtitle}
             multiline
             value={draft.description}
             onChangeText={(v) => update({ description: v })}

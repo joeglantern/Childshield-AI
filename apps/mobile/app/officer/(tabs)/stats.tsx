@@ -158,7 +158,7 @@ export default function OfficerStats() {
               }}
             >
               <Text style={{ fontFamily: font.bodyBold, fontSize: 11.5, color: palette.ink }}>{r.key}</Text>
-              <Text style={{ fontFamily: font.bodyBold, fontSize: 11.5, color: palette.teal }}>{r.count}</Text>
+              <Text style={{ fontFamily: font.bodyBold, fontSize: 11.5, color: palette.tealText }}>{r.count}</Text>
             </View>
           ))}
         </View>

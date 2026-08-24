@@ -51,6 +51,7 @@ export default function Decoy() {
         </Pressable>
       </View>
       <TextInput
+        accessibilityLabel="Notes"
         multiline
         value={text}
         onChangeText={setText}

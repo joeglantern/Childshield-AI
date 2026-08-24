@@ -106,7 +106,7 @@ interface Feedback {
 }
 
 export default function TriviaGame() {
-  const { t, locale } = useApp();
+  const { t, locale, untimedGames } = useApp();
   const { trivia, recordTriviaRound } = useGames();
   const insets = useSafeAreaInsets();
   const { width } = useStageDimensions();
@@ -141,7 +141,10 @@ export default function TriviaGame() {
       const correct = picked !== null && picked === question.correctIndex;
       if (correct) {
         const newCombo = combo + 1;
-        const points = 100 + secondsLeft * 5 + (newCombo - 1) * 25;
+        // Untimed players get the mid-range speed bonus rather than none:
+        // the setting must not quietly cost them points.
+        const speedBonus = untimedGames ? Math.round(QUESTION_SECONDS * 0.5) * 5 : secondsLeft * 5;
+        const points = 100 + speedBonus + (newCombo - 1) * 25;
         setCombo(newCombo);
         setBestCombo((b) => Math.max(b, newCombo));
         setScore((s) => s + points);
@@ -156,13 +159,23 @@ export default function TriviaGame() {
       }
       setPhase('feedback');
     },
-    [phase, question, combo, secondsLeft, stopClock],
+    [phase, question, combo, secondsLeft, stopClock, untimedGames],
   );
 
   // Per-question clock: smooth ring (linear timing, documented exception)
   // plus a 1s tick for the number, the tick sfx, and the timeout.
+  //
+  // ACCESSIBILITY (WCAG 2.2.1 Timing Adjustable): when `untimedGames` is on
+  // no clock starts at all, so the question waits indefinitely. A countdown
+  // a child cannot beat — screen reader, switch access, or simply reading
+  // slowly — turns a safety quiz into a locked door, and the children most
+  // likely to need this content are the ones most likely to be locked out.
   useEffect(() => {
     if (phase !== 'answering') return undefined;
+    if (untimedGames) {
+      progress.value = 1;
+      return undefined;
+    }
     setSecondsLeft(QUESTION_SECONDS);
     progress.value = 1;
     progress.value = withTiming(0, {
@@ -180,10 +193,10 @@ export default function TriviaGame() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, qIndex]);
 
-  // Timeout — counts as a gentle miss.
+  // Timeout — counts as a gentle miss. Never fires when untimed.
   useEffect(() => {
-    if (phase === 'answering' && secondsLeft <= 0) answer(null);
-  }, [secondsLeft, phase, answer]);
+    if (!untimedGames && phase === 'answering' && secondsLeft <= 0) answer(null);
+  }, [secondsLeft, phase, answer, untimedGames]);
 
   const next = useCallback(() => {
     setFeedback(null);
@@ -389,7 +402,8 @@ export default function TriviaGame() {
                   )}
                 </View>
               </View>
-              {phase === 'answering' && (
+              {/* A frozen clock reads as broken, so untimed play hides it. */}
+              {phase === 'answering' && !untimedGames && (
                 <CountdownRing progress={progress} secondsLeft={Math.max(0, secondsLeft)} />
               )}
             </View>

@@ -318,7 +318,7 @@ export default function OfficerQueue() {
               }}
             >
               <RefreshIcon size={13} color={palette.teal} />
-              <Text style={{ fontFamily: font.bodyBold, fontSize: 11.5, color: palette.teal }}>
+              <Text style={{ fontFamily: font.bodyBold, fontSize: 11.5, color: palette.tealText }}>
                 {t.common.retry}
               </Text>
             </PressableScale>

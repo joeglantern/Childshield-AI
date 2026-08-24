@@ -96,6 +96,7 @@ export default function OfficerLogin() {
         </Text>
         <View style={{ width: '100%', gap: 10 }}>
           <TextInput
+            accessibilityLabel={t.officer.email}
             placeholder={t.officer.email}
             placeholderTextColor={palette.textFaint}
             autoCapitalize="none"
@@ -106,6 +107,7 @@ export default function OfficerLogin() {
             style={inputStyle}
           />
           <TextInput
+            accessibilityLabel={t.officer.password}
             placeholder={t.officer.password}
             placeholderTextColor={palette.textFaint}
             secureTextEntry
@@ -114,6 +116,7 @@ export default function OfficerLogin() {
             style={inputStyle}
           />
           <TextInput
+            accessibilityLabel={t.officer.totp}
             placeholder={t.officer.totp}
             placeholderTextColor={palette.textFaint}
             keyboardType="number-pad"

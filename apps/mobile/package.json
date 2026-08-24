@@ -10,7 +10,9 @@
     "start:tunnel": "expo start --dev-client --tunnel",
     "android": "expo run:android",
     "ios": "expo run:ios",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "lint": "eslint app src"
   },
   "dependencies": {
     "@childshield/shared": "workspace:*",
@@ -49,9 +51,15 @@
   },
   "devDependencies": {
     "@babel/core": "^7.26.10",
+    "@childshield/config": "workspace:*",
     "@types/matter-js": "^0.20.2",
     "@types/react": "~19.2.0",
     "babel-preset-expo": "~57.0.7",
-    "typescript": "~6.0.3"
+    "eslint": "^9.39.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-native-a11y": "^3.5.1",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.67.0",
+    "vitest": "^3.2.7"
   }
 }

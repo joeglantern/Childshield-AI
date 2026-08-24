@@ -6,25 +6,38 @@ import { useApp } from '../state/AppContext';
 import { font, palette, radius } from '../theme/tokens';
 import { CaretRightIcon } from './icons';
 
-/// Big amber primary button (52pt, radius 17, Baloo 700 ink text).
+/// Big amber primary button (52pt min, radius 17, Baloo 700 ink text).
 export function PrimaryButton({
   label,
   onPress,
   disabled,
+  hintWhenDisabled,
 }: {
   label: string;
   onPress: () => void;
   disabled?: boolean;
+  /// Spoken when the button is unavailable, so the reason is not left to
+  /// a visual-only cue (a dimmed button conveys nothing to a screen reader).
+  hintWhenDisabled?: string;
 }) {
   return (
     <PressableScale
       accessibilityRole="button"
       accessibilityLabel={label}
+      // ACCESSIBILITY: without this a screen reader announces an ordinary
+      // enabled button. The user presses it, nothing happens, and no error
+      // explains why — the report flow gates every step this way.
+      accessibilityState={{ disabled: !!disabled }}
+      accessibilityHint={disabled ? hintWhenDisabled : undefined}
       disabled={disabled}
       onPress={onPress}
       style={{
         width: '100%',
-        height: 52,
+        // Grows with the label so the text is never clipped at large
+        // Dynamic Type settings.
+        minHeight: 52,
+        paddingVertical: 14,
+        paddingHorizontal: 20,
         borderRadius: radius.button,
         backgroundColor: palette.amber,
         alignItems: 'center',
@@ -32,7 +45,16 @@ export function PrimaryButton({
         opacity: disabled ? 0.5 : 1,
       }}
     >
-      <Text style={{ fontFamily: font.heading, fontSize: 16, color: palette.ink }}>{label}</Text>
+      <Text
+        style={{
+          fontFamily: font.heading,
+          fontSize: 16,
+          color: palette.ink,
+          textAlign: 'center',
+        }}
+      >
+        {label}
+      </Text>
     </PressableScale>
   );
 }

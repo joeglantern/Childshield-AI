@@ -88,6 +88,7 @@ export default function MascotLottieCanvas({
       return Skia.Skottie.Make(JSON.stringify(SOURCES[anim]));
     } catch (error) {
       if (__DEV__) {
+        // eslint-disable-next-line no-console -- dev-only diagnostic
         console.warn('[MascotLottie] Skottie rejected the animation:', error);
       }
       return null;

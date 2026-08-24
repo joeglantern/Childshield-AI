@@ -12,7 +12,6 @@ import {
   makeMutable,
   runOnJS,
   useDerivedValue,
-  useSharedValue,
   type SharedValue,
 } from 'react-native-reanimated';
 import {
@@ -324,7 +323,7 @@ export default function SlingshotGame() {
           const py = anchor.y + dy;
           proj.value = { x: px, y: py, a: 0 };
           // Preview matter's own integration so the dots are honest.
-          let vx = -dx * LAUNCH_K;
+          const vx = -dx * LAUNCH_K;
           let vy = -dy * LAUNCH_K;
           let x = px;
           let y = py;

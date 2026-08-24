@@ -12,6 +12,7 @@ import { consentVersionFor } from '../../src/i18n';
 import { api } from '../../src/lib/api';
 import { snap } from '../../src/lib/haptics';
 import { useApp } from '../../src/state/AppContext';
+import { announce } from '../../src/lib/a11y';
 import { useReport } from '../../src/state/ReportContext';
 import { font, palette } from '../../src/theme/tokens';
 import { CASE_CODE_KEY } from '../(tabs)/status';
@@ -60,8 +61,13 @@ export default function ReviewStep() {
       const created = await api.createCase(intake);
       await AsyncStorage.setItem(CASE_CODE_KEY, created.caseCode);
       reset();
+      // ACCESSIBILITY: the outcome of a submission is the single most
+      // important thing this app ever tells a child. Say it out loud rather
+      // than relying on the new screen rendering.
+      announce(t.report.successTitle);
       router.replace({ pathname: '/report/success', params: { code: created.caseCode } });
     } catch {
+      announce(t.error.title);
       router.push('/report/error');
     } finally {
       setSubmitting(false);

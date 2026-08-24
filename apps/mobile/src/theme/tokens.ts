@@ -1,7 +1,18 @@
 // Design tokens — values match ChildShield AI Screens.dc.html exactly.
 
+// ACCESSIBILITY: text colours are held to WCAG 2.2 AA (4.5:1 for normal
+// text, 3:1 for 18pt+). Several of the original mockup values fell short —
+// muted text sat at 3.44:1 and placeholder text at 2.36:1, which a low-vision
+// child cannot read. The values below are the minimum hue-preserving
+// adjustments that clear AA; `test/accessibility/contrast.test.ts` asserts
+// every real pairing and fails the build if one regresses.
+
 export const palette = {
+  /// Brand teal. Fills and 18pt+ headings only — at small sizes it is
+  /// 3.13:1 on the warm background, so text uses `tealText`.
   teal: '#009C9C',
+  /// Accessible teal for text under 18pt (4.5:1 on warmBg).
+  tealText: '#007A7A',
   ink: '#054240',
   lightTeal: '#3CC0C0',
   amber: '#FC9C24',
@@ -16,14 +27,14 @@ export const palette = {
   darkAccent: '#4FD1CB',
   darkText: '#E8F2F0',
   darkTextMuted: '#9CC4C1',
-  darkFaint: '#5E8683',
+  darkFaint: '#99B2B1',
   darkDot: '#2E6360',
 
-  // Text
-  textMuted: '#6B8B89',
-  textFaint: '#9AA5A0',
+  // Text — all AA against their intended backgrounds.
+  textMuted: '#577270',
+  textFaint: '#686E6B',
   inkSoft: '#3F6664',
-  disabledText: '#A9ABA0',
+  disabledText: '#70716A',
   amberInk: '#7A5310',
 
   // Surfaces / tints
@@ -37,19 +48,21 @@ export const palette = {
   cream: '#FBF9F4',
   caretFaint: '#C9C2B2',
 
-  // Severity (officer views ONLY — never in child flows)
-  critical: '#C23B3B',
+  // Severity (officer views ONLY — never in child flows). The foreground of
+  // each pair is AA against its own tint; an officer misreading a severity
+  // badge is a triage risk, not just a cosmetic one.
+  critical: '#BB3939',
   criticalBg: '#FFE3E3',
   criticalBgSoft: '#FFEDED',
   criticalInk: '#8A3030',
   criticalPanel: '#FFF5F5',
-  high: '#D9731C',
+  high: '#A05515',
   highBg: '#FCE7D3',
   highBadge: '#E8823C',
-  medium: '#A6801D',
+  medium: '#836517',
   mediumDot: '#C79A2E',
   mediumBg: '#F5EBC8',
-  low: '#5B8C86',
+  low: '#486E69',
   lowBg: '#DEEAE9',
 } as const;
 
@@ -100,7 +113,9 @@ export const lightColors: ThemeColors = {
   text: palette.ink,
   muted: palette.textMuted,
   faint: palette.textFaint,
-  accent: palette.teal,
+  /// The accent role is overwhelmingly text, so it takes the AA-safe teal.
+  /// The handful of small fills that use it read as the same brand colour.
+  accent: palette.tealText,
   border: hairlineStrong,
   track: palette.track,
   tileBg: palette.tealTint,

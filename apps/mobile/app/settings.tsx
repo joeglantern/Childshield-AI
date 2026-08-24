@@ -36,6 +36,8 @@ export default function Settings() {
     setNotifsEnabled,
     appLockEnabled,
     setAppLockEnabled,
+    untimedGames,
+    setUntimedGames,
   } = useApp();
   const insets = useSafeAreaInsets();
   const [biometricsAvailable, setBiometricsAvailable] = useState(false);
@@ -209,10 +211,55 @@ export default function Settings() {
               </Text>
             </View>
             <Switch
+              accessibilityLabel={t.settings.caseNotifs}
+              accessibilityHint={t.settings.caseNotifsSub}
               value={notifsEnabled}
               onValueChange={(v) => {
                 snap();
                 setNotifsEnabled(v);
+              }}
+              trackColor={{ true: palette.teal, false: colors.track }}
+              thumbColor={palette.white}
+            />
+          </View>
+
+          {/* ACCESSIBILITY (WCAG 2.2.1): timed content must be adjustable. */}
+          <View style={{ marginTop: 20 }}>
+            <SectionLabel>{t.settings.accessibility}</SectionLabel>
+          </View>
+          <View
+            style={{
+              backgroundColor: colors.card,
+              borderRadius: 18,
+              paddingVertical: 14,
+              paddingHorizontal: 16,
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 12,
+            }}
+          >
+            <Image
+              source={img.tm.sliders}
+              style={{ width: 30, height: 30, resizeMode: 'contain' }}
+              accessible={false}
+            />
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontFamily: font.bodySemi, fontSize: 14, color: colors.text }}>
+                {t.settings.untimedGames}
+              </Text>
+              <Text
+                style={{ fontFamily: font.body, fontSize: 11.5, color: colors.muted, marginTop: 2 }}
+              >
+                {t.settings.untimedGamesSub}
+              </Text>
+            </View>
+            <Switch
+              accessibilityLabel={t.settings.untimedGames}
+              accessibilityHint={t.settings.untimedGamesSub}
+              value={untimedGames}
+              onValueChange={(v) => {
+                snap();
+                setUntimedGames(v);
               }}
               trackColor={{ true: palette.teal, false: colors.track }}
               thumbColor={palette.white}
