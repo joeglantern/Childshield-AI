@@ -13,12 +13,14 @@ import lottie, { type AnimationItem } from 'lottie-web';
 import idleJson from '../../assets/lottie/mascot-idle.json';
 import waveJson from '../../assets/lottie/mascot-wave.json';
 import cheerJson from '../../assets/lottie/mascot-cheer.json';
+import partyJson from '../../assets/lottie/mascot-party.json';
 import type { MascotAnim, MascotLottieCanvasProps } from './MascotLottieCanvas';
 
 const SOURCES: Record<MascotAnim, unknown> = {
   idle: idleJson,
   wave: waveJson,
   cheer: cheerJson,
+  party: partyJson,
 };
 
 export default function MascotLottieCanvasWeb({

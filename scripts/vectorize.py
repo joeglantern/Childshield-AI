@@ -63,18 +63,27 @@ def quantize(rgba: np.ndarray, n_colors: int) -> tuple[np.ndarray, np.ndarray]:
     return labels, palette.astype(np.uint8)
 
 
-def clean_mask(mask: np.ndarray) -> np.ndarray:
-    """Close pinholes and shave anti-aliasing fringes off a colour mask."""
+def clean_mask(mask: np.ndarray, level: int = 2) -> np.ndarray:
+    """Tidy a colour mask.
+
+    level 0 leaves it alone, 1 closes pinholes, 2 also opens to shave
+    anti-aliasing fringes. Opening erodes, so artwork with fine strokes
+    (thin eyebrows, a drawn mouth) loses them at level 2 and should use 1.
+    """
+    if level <= 0:
+        return mask
     kernel = np.ones((3, 3), np.uint8)
     mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel, iterations=1)
+    if level == 1:
+        return mask
     return cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel, iterations=1)
 
 
 def trace_color(
-    labels: np.ndarray, index: int, min_area: float, epsilon: float
+    labels: np.ndarray, index: int, min_area: float, epsilon: float, clean: int = 2
 ) -> list[dict]:
     """Contours for one palette entry, each with its holes attached."""
-    mask = clean_mask(((labels == index).astype(np.uint8)) * 255)
+    mask = clean_mask(((labels == index).astype(np.uint8)) * 255, clean)
     found, hierarchy = cv2.findContours(
         mask, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE
     )
@@ -122,6 +131,7 @@ def vectorize(
     min_area: float,
     epsilon: float,
     smooth_strength: int = 2,
+    clean: int = 2,
 ) -> dict:
     rgba = load_rgba(path)
     height, width = rgba.shape[:2]
@@ -130,7 +140,7 @@ def vectorize(
     layers = []
     for i, bgr_or_rgb in enumerate(palette):
         r, g, b = (int(v) for v in bgr_or_rgb)
-        shapes = trace_color(labels, i, min_area, epsilon)
+        shapes = trace_color(labels, i, min_area, epsilon, clean)
         if not shapes:
             continue
         layers.append(
@@ -178,6 +188,12 @@ def main() -> None:
     ap.add_argument("--min-area", type=float, default=60.0)
     ap.add_argument("--epsilon", type=float, default=1.5)
     ap.add_argument("--smooth", type=int, default=2)
+    ap.add_argument(
+        "--clean",
+        type=int,
+        default=2,
+        help="0 none, 1 close only (keeps fine strokes), 2 close+open",
+    )
     ap.add_argument("--svg")
     ap.add_argument("--json")
     args = ap.parse_args()
@@ -188,6 +204,7 @@ def main() -> None:
         args.min_area,
         args.epsilon,
         args.smooth,
+        args.clean,
     )
 
     shapes = sum(len(layer["shapes"]) for layer in doc["layers"])

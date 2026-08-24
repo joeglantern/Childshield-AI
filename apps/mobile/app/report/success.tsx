@@ -73,7 +73,7 @@ export default function Success() {
               transform: [{ scaleX: -1 }],
             }}
           />
-          <MascotLottie anim="cheer" size={148} onFinish={submitted} />
+          <MascotLottie anim="party" size={148} onFinish={submitted} />
         </View>
         <Text
           style={{

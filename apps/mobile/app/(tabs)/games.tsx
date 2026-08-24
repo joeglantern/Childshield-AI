@@ -9,7 +9,7 @@ import { img } from '../../src/assets';
 import { PressableScale } from '../../src/components/PressableScale';
 import { QuickExitButton } from '../../src/components/QuickExitButton';
 import { StaggerIn } from '../../src/components/StaggerIn';
-import { Mascot } from '../../src/components/Mascot';
+import { MascotLottie } from '../../src/components/MascotLottie';
 import { CaretRightIcon, StarIcon, TrophyIcon } from '../../src/components/icons';
 import { SectionLabel } from '../../src/components/ui';
 import { useApp } from '../../src/state/AppContext';
@@ -170,7 +170,7 @@ export default function GamesHub() {
                     )}
                   </View>
                 </View>
-                <Mascot source={img.mascot.celebrate} size={104} variant="bob" />
+                <MascotLottie anim="party" size={104} loop />
               </View>
             </PressableScale>
           </StaggerIn>

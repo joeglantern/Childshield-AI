@@ -9,13 +9,15 @@ import { useFrameCallback, useSharedValue, type SharedValue } from 'react-native
 import idleJson from '../../assets/lottie/mascot-idle.json';
 import waveJson from '../../assets/lottie/mascot-wave.json';
 import cheerJson from '../../assets/lottie/mascot-cheer.json';
+import partyJson from '../../assets/lottie/mascot-party.json';
 
-export type MascotAnim = 'idle' | 'wave' | 'cheer';
+export type MascotAnim = 'idle' | 'wave' | 'cheer' | 'party';
 
 const SOURCES: Record<MascotAnim, unknown> = {
   idle: idleJson,
   wave: waveJson,
   cheer: cheerJson,
+  party: partyJson,
 };
 
 /// Advances `frame` in real time, looping or holding on the last frame.

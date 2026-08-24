@@ -64,7 +64,7 @@ Two documented exceptions to the springs-only motion rule live here: the trivia 
 
 ## Animated mascot (Lottie)
 
-`<MascotLottie anim="idle|wave|cheer" size={n} />` plays a real vector animation of the brand mascot. Three poses ship in `assets/lottie/`; each is rigged into body / arms / legs / eyes / brows layers, so limbs swing with overlap and the mascot blinks — not a whole-image bob.
+`<MascotLottie anim="idle|wave|cheer|party" size={n} />` plays a real vector animation of the brand mascot, rigged into body / arms / hands / legs / eyes / brows layers so limbs swing with overlap and the mascot blinks — not a whole-image bob. `idle` and `wave` loop; `cheer` and `party` are one-shots that fire `onFinish` (used for the Success haptic). `party` is the fists-up celebrate pose; the rest come from the welcome pose.
 
 The files are generated locally from the brand PNGs, with no paid tooling and nothing uploaded anywhere:
 
@@ -74,7 +74,9 @@ The files are generated locally from the brand PNGs, with no paid tooling and no
 Two things there are load-bearing, both learned by getting them wrong first:
 
 - **Parent the face to the body.** Animating the face in canvas coordinates alongside the body, even by a slightly different amount, slides it across the shield and the character visibly comes apart. As a child it inherits the body's motion exactly and only animates a blink.
-- **Keep shoulder rotation under ~15°.** The arm is a short stub mostly hidden behind the shield; rotate it further and the stub swings inside the silhouette, leaving the hand floating unattached. Expression belongs in the wrist (hands are their own layers and lag the arm, which is also what gives the motion overlap).
+- **Keep shoulder rotation under ~15° on the welcome pose.** The arm is a short stub mostly hidden behind the shield; rotate it further and the stub swings inside the silhouette, leaving the hand floating unattached. Expression belongs in the wrist (hands are their own layers and lag the arm, which is also what gives the motion overlap). The celebrate pose holds its fists clear of the body, so that rig tolerates more.
+
+**Known limit — not every pose can be traced.** The tracer needs bold shapes. Poses whose expression is carried by *thin* strokes do not survive colour quantisation: the anti-aliased edges of a hairline eyebrow or a drawn frown get split between the stroke colour and the body colour, and the feature comes out ragged. The sad pose fails this way (its brows and frown are hairlines), so the error screen deliberately keeps the crisp static PNG via `<Mascot>` rather than a degraded animation. Check any new pose against the original side by side before shipping it; `--clean 1` on the tracer preserves thin strokes better than the default but does not rescue them.
 
 Regenerate with, e.g.:
 ```

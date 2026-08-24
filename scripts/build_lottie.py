@@ -114,6 +114,72 @@ RIGS: dict[str, dict] = {
             },
         ],
     },
+    # Mid-air celebration, both fists up, eyes squeezed shut (mascot-celebrate).
+    # Here the fists ARE outside the silhouette, so this rig tolerates much
+    # more shoulder rotation than the welcome pose does.
+    "celebrate": {
+        "source": [1230, 1278],
+        "bodyPivot": [620, 1150],
+        "bodyZ": 2,
+        "parts": [
+            {
+                "name": "brows",
+                "region": [440, 320, 840, 460],
+                "pivot": [620, 390],
+                "parent": "body",
+                "z": 5,
+            },
+            {
+                "name": "eyes",
+                "region": [420, 400, 820, 560],
+                "pivot": [620, 480],
+                "parent": "body",
+                "z": 4,
+            },
+            {
+                "name": "leftFist",
+                "region": [100, 150, 330, 380],
+                "pivot": [270, 350],
+                "parent": "leftArm",
+                "z": 1,
+            },
+            {
+                "name": "leftArm",
+                "region": [180, 310, 340, 540],
+                "pivot": [330, 500],
+                "parent": "body",
+                "z": 0,
+            },
+            {
+                "name": "rightFist",
+                "region": [980, 340, 1180, 540],
+                "pivot": [1020, 520],
+                "parent": "rightArm",
+                "z": 1,
+            },
+            {
+                "name": "rightArm",
+                "region": [870, 500, 1100, 680],
+                "pivot": [900, 620],
+                "parent": "body",
+                "z": 0,
+            },
+            {
+                "name": "leftLeg",
+                "region": [110, 640, 490, 980],
+                "pivot": [400, 700],
+                "parent": "body",
+                "z": 3,
+            },
+            {
+                "name": "rightLeg",
+                "region": [620, 800, 920, 1200],
+                "pivot": [700, 830],
+                "parent": "body",
+                "z": 3,
+            },
+        ],
+    },
 }
 
 
@@ -403,10 +469,128 @@ def cheer_animation() -> tuple[int, dict[str, dict]]:
     }
 
 
+def party_animation() -> tuple[int, dict[str, dict]]:
+    """Celebration loop for the fists-up pose: bounce with a fist pump.
+
+    Two bounces per loop with the second slightly smaller, so it decays like
+    real excitement instead of metronoming. The fists are clear of the body
+    in this pose, so the arms can swing properly here.
+    """
+    dur = 96
+    rise = 30.0
+
+    def bounce(amount: float, lag: int = 0) -> dict:
+        return kf(
+            [
+                (0, [0], "out"),
+                (10 + lag, [-amount], "in"),
+                (26 + lag, [0], "out"),
+                (34 + lag, [amount * 0.16], "out"),
+                (48 + lag, [-amount * 0.62], "in"),
+                (64 + lag, [0], "out"),
+                (72 + lag, [amount * 0.1], "out"),
+                (84 + lag, [0], "overshoot"),
+                (dur, [0], "smooth"),
+            ]
+        )
+
+    return dur, {
+        "body": {
+            "dy": bounce(rise),
+            "s": kf(
+                [
+                    (0, [100, 100], "out"),
+                    (10, [96, 105], "in"),
+                    (26, [104, 96], "out"),
+                    (40, [99, 101], "smooth"),
+                    (56, [102, 98], "smooth"),
+                    (72, [100, 100], "overshoot"),
+                    (dur, [100, 100], "smooth"),
+                ]
+            ),
+            "r": kf(
+                [
+                    (0, [0], "smooth"),
+                    (26, [2], "smooth"),
+                    (64, [-2], "smooth"),
+                    (dur, [0], "smooth"),
+                ]
+            ),
+        },
+        "leftArm": {
+            "r": kf(
+                [
+                    (0, [0], "out"),
+                    (12, [-16], "overshoot"),
+                    (34, [4], "smooth"),
+                    (54, [-11], "overshoot"),
+                    (76, [0], "smooth"),
+                    (dur, [0], "smooth"),
+                ]
+            )
+        },
+        "rightArm": {
+            "r": kf(
+                [
+                    (0, [0], "out"),
+                    (12, [16], "overshoot"),
+                    (34, [-4], "smooth"),
+                    (54, [11], "overshoot"),
+                    (76, [0], "smooth"),
+                    (dur, [0], "smooth"),
+                ]
+            )
+        },
+        # Fists whip a few frames after the arms: follow-through.
+        "leftFist": {
+            "r": kf(
+                [
+                    (0, [0], "out"),
+                    (18, [-20], "overshoot"),
+                    (40, [6], "smooth"),
+                    (60, [-13], "overshoot"),
+                    (82, [0], "smooth"),
+                    (dur, [0], "smooth"),
+                ]
+            )
+        },
+        "rightFist": {
+            "r": kf(
+                [
+                    (0, [0], "out"),
+                    (18, [20], "overshoot"),
+                    (40, [-6], "smooth"),
+                    (60, [13], "overshoot"),
+                    (82, [0], "smooth"),
+                    (dur, [0], "smooth"),
+                ]
+            )
+        },
+        "leftLeg": {"r": bounce_rot(6, dur)},
+        "rightLeg": {"r": bounce_rot(-6, dur)},
+        "brows": {"dy": bounce(rise * 0.22, lag=4)},
+    }
+
+
+def bounce_rot(amount: float, dur: int) -> dict:
+    """Legs kick out at the top of each bounce and tuck back on the way down."""
+    return kf(
+        [
+            (0, [0], "out"),
+            (14, [amount], "in"),
+            (30, [0], "out"),
+            (52, [amount * 0.6], "in"),
+            (68, [0], "smooth"),
+            (dur, [0], "smooth"),
+        ]
+    )
+
+
 ANIMATIONS = {
     "idle": idle_animation,
     "wave": wave_animation,
     "cheer": cheer_animation,
+    "party": party_animation,
     "static": lambda: (60, {}),
 }
 

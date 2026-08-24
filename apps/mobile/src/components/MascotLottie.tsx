@@ -27,6 +27,7 @@ const FALLBACK: Record<MascotAnim, { source: number; variant: 'bob' | 'pop' }> =
   idle: { source: img.mascot.welcome, variant: 'bob' },
   wave: { source: img.mascot.welcome, variant: 'bob' },
   cheer: { source: img.mascot.celebrate, variant: 'pop' },
+  party: { source: img.mascot.celebrate, variant: 'pop' },
 };
 
 function useReducedMotion(): boolean {
@@ -42,7 +43,7 @@ function useReducedMotion(): boolean {
 interface Props {
   anim: MascotAnim;
   size: number;
-  /// idle/wave loop by default; cheer is a one-shot.
+  /// idle/wave loop by default; cheer and party are one-shots.
   loop?: boolean;
   style?: StyleProp<ViewStyle>;
   /// Fires when a non-looping animation reaches its last frame. The static
@@ -55,7 +56,7 @@ export function MascotLottie({ anim, size, loop, style, onFinish }: Props) {
   const [unavailable, setUnavailable] = useState(false);
   const onUnavailable = useCallback(() => setUnavailable(true), []);
 
-  const shouldLoop = loop ?? anim !== 'cheer';
+  const shouldLoop = loop ?? (anim === 'idle' || anim === 'wave');
   const fallback = FALLBACK[anim];
   const staticMascot = (
     <View style={[{ width: size, height: size }, style]}>
