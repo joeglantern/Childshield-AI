@@ -69,7 +69,12 @@ Two documented exceptions to the springs-only motion rule live here: the trivia 
 The files are generated locally from the brand PNGs, with no paid tooling and nothing uploaded anywhere:
 
 1. `scripts/vectorize.py` traces a flat-colour PNG into vector contours (OpenCV: smooth gradients, k-means the palette, walk each colour's outlines plus holes). The mascot art traces to ~40 shapes at 8 colours.
-2. `scripts/build_lottie.py` sorts those contours into rig parts by bounding box, gives each part a pivot at its joint, and keyframes the transforms into Lottie JSON.
+2. `scripts/build_lottie.py` sorts those contours into rig parts by bounding box and builds a **parented** hierarchy — hands parented to arms, everything else to the body — then keyframes each part's own motion.
+
+Two things there are load-bearing, both learned by getting them wrong first:
+
+- **Parent the face to the body.** Animating the face in canvas coordinates alongside the body, even by a slightly different amount, slides it across the shield and the character visibly comes apart. As a child it inherits the body's motion exactly and only animates a blink.
+- **Keep shoulder rotation under ~15°.** The arm is a short stub mostly hidden behind the shield; rotate it further and the stub swings inside the silhouette, leaving the hand floating unattached. Expression belongs in the wrist (hands are their own layers and lag the arm, which is also what gives the motion overlap).
 
 Regenerate with, e.g.:
 ```
