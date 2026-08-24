@@ -6,4 +6,5 @@ export * from './ws-events.js';
 export * from './case.js';
 export * from './audit.js';
 export * from './auth.js';
+export * from './override.js';
 export * from './sla.js';

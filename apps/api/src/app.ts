@@ -21,6 +21,7 @@ import {
   type TriageScheduler,
 } from './modules/cases/index.js';
 import { registerAuditRoutes } from './modules/audit/routes.js';
+import { OverrideService, registerOverrideRoutes } from './modules/override/index.js';
 import { registerHealthRoutes } from './modules/health/routes.js';
 import { RedisEventPublisher, WsHub } from './modules/ws/hub.js';
 import { registerWsRoutes } from './modules/ws/routes.js';
@@ -159,11 +160,13 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
     triage,
     logger: app.log,
   });
+  const overrideService = new OverrideService({ prisma, publisher, logger: app.log });
   const hub = new WsHub(subRedis, redis, app.log);
 
   registerHealthRoutes(app, { prisma, redis });
   registerAuthRoutes(app, authService);
   registerCaseRoutes(app, casesService);
+  registerOverrideRoutes(app, overrideService);
   registerAuditRoutes(app, prisma);
   registerWsRoutes(app, { redis, hub, ticketTtlSeconds: env.WS_TICKET_TTL });
 

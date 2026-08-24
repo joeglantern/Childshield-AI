@@ -42,7 +42,7 @@ The repo now lives at **`C:\Users\liban\Projects\Childshield`** (moved out of On
 
 ## Backend — Milestone B4: Override, referrals, notifications
 
-- ⬜ Override module (§3.8): threshold config in DB, imminent-harm flag, `OverrideEvent` + `override.triggered` WS (contract + supervisor room already exist), weekly review export.
+- ✅ **Override module (§3.8)** — supervisor-only `POST /cases/:id/override`, imminent-harm flag, grounds taxonomy, mandatory written justification, `OverrideEvent` + `CaseEvent(OVERRIDE_TRIGGERED)` + audit row in one transaction, `override.triggered` on the supervisor WS room, and the weekly review export (`GET /overrides/review`, bounded to 92 days). Guarded by `test/safeguarding/override.test.ts`. **Still open:** per-case DB-configurable thresholds (currently the supervisor's judgement is the threshold), and the DCS referral dispatch that consumes an override.
 - ⬜ Referral service: partner routing table, dispatch, acknowledgment tracking, SLA-breach escalation.
 - ⬜ Guardian notifications via SMS/WhatsApp — gated on `safe_contact_verified === true` (invariant 8), with dedicated safeguarding tests.
 
